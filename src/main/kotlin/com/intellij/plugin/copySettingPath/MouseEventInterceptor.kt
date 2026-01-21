@@ -1,4 +1,4 @@
-package com.intellij.plugin.copyOptionPath
+package com.intellij.plugin.CopySettingPath
 
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
@@ -18,18 +18,18 @@ import java.awt.event.MouseEvent
  *
  * The IntelliJ Platform processes mouse shortcuts on MOUSE_RELEASED, but by that time
  * the MOUSE_PRESSED event has already been dispatched to the component. This interceptor
- * blocks the MOUSE_PRESSED event when the CopyOptionsPath shortcut is active, preventing
+ * blocks the MOUSE_PRESSED event when the CopySettingPath shortcut is active, preventing
  * unwanted side effects while still allowing the action to trigger on MOUSE_RELEASED.
  *
- * Registered via [CopyOptionPathAppLifecycleListener] when the application frame is created,
+ * Registered via [CopySettingPathAppLifecycleListener] when the application frame is created,
  * ensuring it's initialized early before any dialogs can be opened.
  */
 @Service(Service.Level.APP)
 class MouseEventInterceptor : Disposable {
 
     companion object {
-        private const val COPY_OPTIONS_PATH_ACTION_ID = "CopyOptionsPath"
-        private const val MOUSE_INTERCEPT_SETTING_ID = "copy.option.path.mouse.intercept"
+        private const val COPY_OPTIONS_PATH_ACTION_ID = "CopySettingPath"
+        private const val MOUSE_INTERCEPT_SETTING_ID = "copy.setting.path.mouse.intercept"
 
         @JvmStatic
         fun getInstance(): MouseEventInterceptor = service()
@@ -40,7 +40,7 @@ class MouseEventInterceptor : Disposable {
 
     /**
      * Registers the event interceptor with the IDE event queue.
-     * Called from [CopyOptionPathAppLifecycleListener.appFrameCreated].
+     * Called from [CopySettingPathAppLifecycleListener.appFrameCreated].
      */
     fun register() {
         if (isRegistered) return
@@ -52,15 +52,15 @@ class MouseEventInterceptor : Disposable {
                 { event -> interceptMouseEvent(event) },
                 this
             )
-            LOG.info("MouseEventInterceptor registered for CopyOptionsPath")
+            LOG.info("MouseEventInterceptor registered for CopySettingPath")
         }
     }
 
     /**
      * Intercepts mouse events and blocks MOUSE_PRESSED if it matches
-     * the CopyOptionsPath shortcut, preventing component activation.
+     * the CopySettingPath shortcut, preventing component activation.
      *
-     * This behavior is controlled by the "copy.option.path.mouse.intercept" advanced setting.
+     * This behavior is controlled by the "copy.setting.path.mouse.intercept" advanced setting.
      * When disabled (default), the interceptor does not block any events.
      *
      * @param event The AWT event to process.
@@ -74,19 +74,19 @@ class MouseEventInterceptor : Disposable {
         if (event.id != MouseEvent.MOUSE_PRESSED) return false
 
         // Check if the modifier keys match our shortcut
-        if (!isCopyOptionsPathShortcut(event)) return false
+        if (!isCopySettingPathShortcut(event)) return false
 
         // Block the MOUSE_PRESSED event to prevent component activation
         // Return true to tell IdeEventQueue: "I handled this, don't dispatch further"
         // The MOUSE_RELEASED will still trigger our action via the normal shortcut mechanism
-        LOG.info("Blocking MOUSE_PRESSED to prevent component activation for CopyOptionsPath")
+        LOG.info("Blocking MOUSE_PRESSED to prevent component activation for CopySettingPath")
         return true
     }
 
     /**
-     * Checks if the mouse event matches the CopyOptionsPath action shortcut.
+     * Checks if the mouse event matches the CopySettingPath action shortcut.
      */
-    private fun isCopyOptionsPathShortcut(event: MouseEvent): Boolean {
+    private fun isCopySettingPathShortcut(event: MouseEvent): Boolean {
         // Only handle left mouse button
         if (event.button != MouseEvent.BUTTON1) return false
 
@@ -109,12 +109,12 @@ class MouseEventInterceptor : Disposable {
 
         if (relevantModifiers != expectedModifier) return false
 
-        // Verify that the shortcut is actually registered for CopyOptionsPath action
+        // Verify that the shortcut is actually registered for CopySettingPath action
         return isShortcutRegisteredForAction(event)
     }
 
     /**
-     * Verifies that the current mouse shortcut is registered for the CopyOptionsPath action.
+     * Verifies that the current mouse shortcut is registered for the CopySettingPath action.
      */
     private fun isShortcutRegisteredForAction(event: MouseEvent): Boolean {
         val keymapManager = KeymapManager.getInstance() ?: return false

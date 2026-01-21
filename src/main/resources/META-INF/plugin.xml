@@ -1,10 +1,35 @@
 <idea-plugin>
-  <id>com.intellij.plugin.copy.options</id>
-  <name>Copy Option Path</name>
+  <id>com.intellij.plugin.copy.setting.path</id>
+  <name>Copy Setting Path</name>
   <vendor email="sbaranov@gmail.com" url="https://github.com/CrazyCoder">Serge Baranov</vendor>
 
   <description><![CDATA[
-    Adds 'Copy Option Path' action which copies the full path to an option from IDE dialogs.<br>
+    <p>Adds <b>Copy Setting Path</b> action which copies the full navigation path to any UI setting in IDE dialogs to the clipboard.</p>
+
+    <h3>Features</h3>
+    <ul>
+      <li>Copy full path to any option in Settings dialogs (e.g., <code>Settings | Editor | Code Style | Java</code>)</li>
+      <li>Works with Project Structure dialog in IntelliJ IDEA and EDU products</li>
+      <li>Supports navigation via <b>Ctrl+Click</b> (Cmd+Click on macOS)</li>
+      <li>Handles tree structures, tabs, titled panels, buttons, labels, and tables</li>
+      <li>Configurable path separator style (pipe, arrow, or breadcrumb) via <b>Advanced Settings</b></li>
+      <li>Optional mouse click interception via <b>Advanced Settings</b></li>
+    </ul>
+
+    <h3>Usage</h3>
+    <ul>
+      <li>Open any IDE dialog (Settings, Project Structure, etc.)</li>
+      <li>Right-click on any UI element and select <b>Copy Setting Path</b> from the context menu</li>
+      <li>Or use <b>Ctrl+Click</b> (Cmd+Click on macOS) on the element</li>
+      <li>The full path is copied to the clipboard</li>
+    </ul>
+
+    <h3>Configuration</h3>
+    <p>Go to <b>Settings | Advanced Settings | Copy Setting Path</b> to configure:</p>
+    <ul>
+      <li><b>Path separator style</b>: Choose between pipe (<code>|</code>), arrow (<code>></code>), or breadcrumb (<code>/</code>)</li>
+      <li><b>Mouse click interception</b>: Enable/disable Ctrl+Click behavior</li>
+    </ul>
     ]]></description>
 
   <idea-version since-build="251"/>
@@ -12,31 +37,31 @@
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.lang</depends>
 
-  <resource-bundle>messages.CopyOptionPathBundle</resource-bundle>
+  <resource-bundle>messages.CopySettingPathBundle</resource-bundle>
 
   <applicationListeners>
-    <listener class="com.intellij.plugin.copyOptionPath.CopyOptionPathAppLifecycleListener"
+    <listener class="com.intellij.plugin.CopySettingPath.CopySettingPathAppLifecycleListener"
               topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Advanced setting to control mouse click interception -->
-    <advancedSetting id="copy.option.path.mouse.intercept"
+    <advancedSetting id="copy.setting.path.mouse.intercept"
                      default="false"
-                     groupKey="group.advanced.settings.copy.option.path"
-                     bundle="messages.CopyOptionPathBundle"/>
+                     groupKey="group.advanced.settings.copy.setting.path"
+                     bundle="messages.CopySettingPathBundle"/>
 
     <!-- Advanced setting for path separator style -->
-    <advancedSetting id="copy.option.path.separator"
+    <advancedSetting id="copy.setting.path.separator"
                      default="PIPE"
-                     enumClass="com.intellij.plugin.copyOptionPath.PathSeparator"
-                     groupKey="group.advanced.settings.copy.option.path"
-                     bundle="messages.CopyOptionPathBundle"/>
+                     enumClass="com.intellij.plugin.CopySettingPath.PathSeparator"
+                     groupKey="group.advanced.settings.copy.setting.path"
+                     bundle="messages.CopySettingPathBundle"/>
   </extensions>
 
   <actions>
-    <action id="CopyOptionsPath" description="Copies option path to clipboard" text="Copy Option Path"
-            class="com.intellij.plugin.copyOptionPath.actions.CopyOptionsPath">
+    <action id="CopySettingPath" description="Copies setting path to clipboard" text="Copy Setting Path"
+            class="com.intellij.plugin.CopySettingPath.actions.CopySettingPath">
       <add-to-group group-id="CutCopyPasteGroup" anchor="last"/>
       <mouse-shortcut keymap="$default" keystroke="control button1"/>
       <mouse-shortcut keymap="Mac OS X 10.5+" keystroke="meta button1"/>

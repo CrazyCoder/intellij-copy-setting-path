@@ -1,6 +1,6 @@
 # Running and Debugging the Plugin
 
-This guide explains how to run the Copy Option Path plugin in a sandboxed IDE instance for testing and how to enable
+This guide explains how to run the Copy Setting Path plugin in a sandboxed IDE instance for testing and how to enable
 debug logging.
 
 ## Prerequisites
@@ -51,13 +51,13 @@ gradlew.bat runIde
 
 Place breakpoints in key locations:
 
-- `CopyOptionsPath.kt:actionPerformed()` - Main action entry point
-- `CopyOptionsPath.kt:update()` - Action visibility/enablement logic
+- `CopySettingPath.kt:actionPerformed()` - Main action entry point
+- `CopySettingPath.kt:update()` - Action visibility/enablement logic
 - `CopyActionUtil.kt` - Path building utilities
 
 ## Enabling Debug Logging
 
-The plugin uses IntelliJ's diagnostic logger with the category `#com.intellij.plugin.copyOptionPath`.
+The plugin uses IntelliJ's diagnostic logger with the category `#com.intellij.plugin.CopySettingPath`.
 
 ### Method 1: Debug Log Settings (Sandboxed IDE)
 
@@ -66,7 +66,7 @@ In the **sandboxed IDE** that launches when you run the plugin:
 1. Go to **Help → Diagnostic Tools → Debug Log Settings...**
 2. Add the following line:
    ```
-   #com.intellij.plugin.copyOptionPath
+   #com.intellij.plugin.CopySettingPath
    ```
 3. Click **OK**
 4. Use the plugin - debug messages will appear in the IDE log
@@ -77,7 +77,7 @@ View the log file in the sandboxed IDE:
 
 1. Go to **Help → Show Log in Explorer/Finder**
 2. Open `idea.log`
-3. Search for `copyOptionPath` to find plugin-related messages
+3. Search for `CopySettingPath` to find plugin-related messages
 
 ### Method 3: Log File Location
 
@@ -112,7 +112,7 @@ LOG.warn("Can not get project structure path: " + e.message)
 To add more debug output, use the existing logger:
 
 ```kotlin
-import com.intellij.plugin.copyOptionPath.LOG
+import com.intellij.plugin.CopySettingPath.LOG
 
 // Debug level (only shown when debug logging enabled)
 LOG.debug("Debug message: $variable")
@@ -130,7 +130,7 @@ Once the sandboxed IDE is running:
 
 1. **Open Settings Dialog:** `Ctrl+Alt+S` (Windows/Linux) or `Cmd+,` (macOS)
 2. **Navigate** to any setting (e.g., Editor → Code Style → Java)
-3. **Ctrl+Click** (or **Cmd+Click** on macOS) on any option
+3. **Ctrl+Click** (or **Cmd+Click** on macOS) on any setting
 4. The full path is copied to your clipboard (e.g., `Settings | Editor | Code Style | Java`)
 
 ### Testing Locations
@@ -145,7 +145,7 @@ Test the plugin in these dialogs:
 
 ### Plugin Not Loading
 
-1. Check **Help → About** in the sandboxed IDE for "Copy Option Path" in the plugin list
+1. Check **Help → About** in the sandboxed IDE for "Copy Setting Path" in the plugin list
 2. Verify build succeeded without errors
 3. Check the log for plugin loading errors
 
@@ -157,7 +157,7 @@ Test the plugin in these dialogs:
 
 ### Action Not Available
 
-The "Copy Option Path" action only appears when:
+The "Copy Setting Path" action only appears when:
 
 - A UI component is focused in a dialog
 - The dialog is modal (Settings, Project Structure, etc.)

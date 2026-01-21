@@ -1,7 +1,7 @@
-# Copy Option Path
+# Copy Setting Path
 
-An IntelliJ Platform plugin that adds a **Copy Option Path** action to JetBrains IDEs. This action copies the full
-navigation path to any UI option in IDE dialogs (such as Settings, Project Structure, etc.) to the clipboard.
+An IntelliJ Platform plugin that adds a **Copy Setting Path** action to JetBrains IDEs. This action copies the full
+navigation path to any UI setting in IDE dialogs (such as Settings, Project Structure, etc.) to the clipboard.
 
 ## Features
 
@@ -16,7 +16,7 @@ navigation path to any UI option in IDE dialogs (such as Settings, Project Struc
 
 1. Open your JetBrains IDE
 2. Go to **Settings | Plugins | Marketplace**
-3. Search for "Copy Option Path"
+3. Search for "Copy Setting Path"
 4. Click **Install**
 
 ### Manual Installation
@@ -37,7 +37,7 @@ full path to the clipboard.
 1. Open any IDE dialog (Settings, Project Structure, etc.)
 2. Navigate to the desired option
 3. Right-click on the option
-4. Select **Copy Option Path** from the context menu
+4. Select **Copy Setting Path** from the context menu
 
 ### Example Output
 
@@ -56,11 +56,11 @@ Settings | Editor | General | Auto Import | Java | Insert imports on paste:
 
 ### Advanced Settings
 
-The plugin provides settings in **Settings | Advanced Settings** under the **Copy Option Path** group:
+The plugin provides settings in **Settings | Advanced Settings** under the **Copy Setting Path** group:
 
 | Setting                                           | Default  | Description                                                                                                                                            |
 |---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Intercept Ctrl/Cmd+Click for Copy Option Path** | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the option path **without activating UI components** like checkboxes or buttons. |
+| **Intercept Ctrl/Cmd+Click for Copy Setting Path** | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the option path **without activating UI components** like checkboxes or buttons. |
 | **Path separator style**                          | Pipe     | Choose the separator character used between path components in the copied option path.                                                                 |
 
 #### Path Separator Styles
@@ -94,6 +94,11 @@ Keep the default (disabled) if:
 ## Recent Fixes
 
 This fork includes important fixes for compatibility with modern IDE versions:
+
+- **JTable support for Registry and similar dialogs** — The plugin now supports copying values from JTable-based dialogs
+  like the Registry dialog. Clicking on any table cell copies the value of that specific cell. For example, clicking on
+  a registry key name in the Registry dialog (`Help | Find Action... | Registry...`) copies the key name to the
+  clipboard.
 
 - **Optional non-intrusive Ctrl/Cmd+Click** — When enabled in Advanced Settings, Ctrl+Click (Cmd+Click on macOS) copies
   the option path **without activating the UI component**. Previously, clicking on a checkbox would toggle it, and

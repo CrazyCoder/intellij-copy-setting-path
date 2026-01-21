@@ -1,4 +1,4 @@
-package com.intellij.plugin.copyOptionPath.actions
+package com.intellij.plugin.CopySettingPath.actions
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -10,7 +10,7 @@ import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.plugin.copyOptionPath.*
+import com.intellij.plugin.CopySettingPath.*
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.TextTransferable
@@ -20,7 +20,7 @@ import javax.swing.JLabel
 import javax.swing.JTable
 
 /**
- * Action that copies the full navigation path to the currently focused UI option.
+ * Action that copies the full navigation path to the currently focused UI setting.
  *
  * This action allows users to copy paths like "Settings | Editor | Code Style | Java"
  * from IDE dialogs to the clipboard. It works with:
@@ -30,7 +30,7 @@ import javax.swing.JTable
  *
  * The action can be triggered via context menu or Ctrl+Click (Cmd+Click on macOS).
  */
-class CopyOptionsPath : DumbAwareAction() {
+class CopySettingPath : DumbAwareAction() {
 
     init {
         isEnabledInModalContext = true
@@ -44,7 +44,7 @@ class CopyOptionsPath : DumbAwareAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         val src = e.getData(PlatformDataKeys.CONTEXT_COMPONENT) ?: return
-        val path = buildOptionPath(src, e) ?: return
+        val path = buildSettingPath(src, e) ?: return
 
         val result = trimFinalResult(path)
         LOG.debug("Selected path: $result")
@@ -59,7 +59,7 @@ class CopyOptionsPath : DumbAwareAction() {
      * @param e The action event containing context information.
      * @return StringBuilder with the built path, or null if path cannot be determined.
      */
-    private fun buildOptionPath(src: Component, e: AnActionEvent): StringBuilder? {
+    private fun buildSettingPath(src: Component, e: AnActionEvent): StringBuilder? {
         val dialog = DialogWrapper.findInstance(src) ?: return null
         val path = StringBuilder()
         val separator = getPathSeparator()
@@ -190,7 +190,7 @@ class CopyOptionsPath : DumbAwareAction() {
     @Suppress("CompanionObjectInExtension")
     companion object {
         /** Advanced setting ID for path separator configuration. */
-        private const val PATH_SEPARATOR_SETTING_ID = "copy.option.path.separator"
+        private const val PATH_SEPARATOR_SETTING_ID = "copy.setting.path.separator"
 
         /** Prefix for Settings dialog paths. */
         private const val SETTINGS_PREFIX = "Settings"

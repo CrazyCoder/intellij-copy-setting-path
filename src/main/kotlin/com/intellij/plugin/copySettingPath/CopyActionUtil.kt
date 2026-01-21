@@ -1,6 +1,6 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package com.intellij.plugin.copyOptionPath
+package com.intellij.plugin.CopySettingPath
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -23,8 +23,8 @@ import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.SwingUtilities
 
-/** Logger instance for the copy option path plugin. */
-val LOG: Logger = Logger.getInstance("#com.intellij.plugin.copyOptionPath")
+/** Logger instance for the Copy Setting Path plugin. */
+val LOG: Logger = Logger.getInstance("#com.intellij.plugin.CopySettingPath")
 
 /**
  * Constants used throughout the plugin for path construction.
@@ -345,7 +345,7 @@ fun appendSrcText(path: StringBuilder, text: String?) {
  * Trims the final result by removing trailing separators, HTML tags, and Advanced Settings IDs.
  *
  * Advanced Settings UI may append setting IDs to labels when searching by ID
- * (e.g., "Path separator style:copy.option.path.separator"). This function
+ * (e.g., "Path separator style:copy.setting.path.separator"). This function
  * removes such IDs to produce clean paths.
  *
  * @param path The path StringBuilder to process.
@@ -362,7 +362,7 @@ fun trimFinalResult(path: StringBuilder): String {
  * Removes Advanced Settings IDs that may be appended to labels.
  *
  * Pattern: "Label text:setting.id.here" -> "Label text"
- * The ID pattern is: colon followed by a dotted identifier (e.g., "copy.option.path.separator").
+ * The ID pattern is: colon followed by a dotted identifier (e.g., "copy.setting.path.separator").
  * Must contain at least one dot to distinguish from regular text ending with ":word".
  */
 private fun String.removeAdvancedSettingIds(): String {

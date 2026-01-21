@@ -1,13 +1,13 @@
-package com.intellij.plugin.copyOptionPath
+package com.intellij.plugin.CopySettingPath
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.PropertyKey
 
-private const val BUNDLE = "messages.CopyOptionPathBundle"
+private const val BUNDLE = "messages.CopySettingPathBundle"
 
 /**
- * Enum representing available path separator styles for the Copy Option Path action.
+ * Enum representing available path separator styles for the Copy Setting Path action.
  * Each separator defines how path components are joined in the copied result.
  *
  * @property separator The actual separator string used between path components.

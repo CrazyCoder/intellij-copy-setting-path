@@ -1,4 +1,4 @@
-package com.intellij.plugin.copyOptionPath
+package com.intellij.plugin.CopySettingPath
 
 import com.intellij.ide.AppLifecycleListener
 
@@ -8,7 +8,7 @@ import com.intellij.ide.AppLifecycleListener
  * Using AppLifecycleListener.appFrameCreated ensures the interceptor is registered
  * early enough to intercept the first Ctrl/Cmd+Click, before any dialogs can be opened.
  */
-class CopyOptionPathAppLifecycleListener : AppLifecycleListener {
+class CopySettingPathAppLifecycleListener : AppLifecycleListener {
 
     override fun appFrameCreated(commandLineArgs: List<String>) {
         MouseEventInterceptor.getInstance().register()
