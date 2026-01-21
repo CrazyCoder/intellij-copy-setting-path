@@ -50,9 +50,34 @@ Settings | Editor | General | Auto Import | Java | Insert imports on paste:
 - **Minimum IDE Version:** 2025.1+
 - **Supported IDEs:** All JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, GoLand, etc.)
 
+## Configuration
+
+### Advanced Settings
+
+The plugin provides an optional setting in **Settings | Advanced Settings** under the **Copy Option Path** group:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Intercept Ctrl/Cmd+Click for Copy Option Path** | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the option path **without activating UI components** like checkboxes or buttons. |
+
+#### When to Enable
+
+Enable this setting if you want Ctrl/Cmd+Click to **only** copy the path without triggering the underlying UI element. This is useful when:
+- You frequently Ctrl+Click on checkboxes and don't want them to toggle
+- You want to copy paths from buttons without activating them
+
+#### When to Keep Disabled (Default)
+
+Keep the default (disabled) if:
+- You rarely use Ctrl/Cmd+Click on interactive elements
+- You prefer the standard IDE behavior where Ctrl/Cmd+Click may also trigger the component
+- You want to minimize any potential interference with other IDE features that use Ctrl/Cmd+Click
+
 ## Recent Fixes
 
 This fork includes important fixes for compatibility with modern IDE versions:
+
+- **Optional non-intrusive Ctrl/Cmd+Click** — When enabled in Advanced Settings, Ctrl+Click (Cmd+Click on macOS) copies the option path **without activating the UI component**. Previously, clicking on a checkbox would toggle it, and clicking on a button would activate it. This feature is disabled by default to avoid interfering with standard IDE behavior.
 
 - **Added settings group detection** — The plugin now captures titled separator groups (like "Java", "Kotlin", "Groovy" sections) that appear in Settings panels. For example, clicking on "Insert imports on paste:" in the Java section of Auto Import settings now produces `Settings | Editor | General | Auto Import | Java | Insert imports on paste:` instead of omitting the "Java" group name.
 

@@ -12,9 +12,17 @@
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.lang</depends>
 
+  <resource-bundle>messages.CopyOptionPathBundle</resource-bundle>
+
   <extensions defaultExtensionNs="com.intellij">
     <!-- Register application listener to initialize mouse event interceptor early -->
     <applicationInitializedListener implementation="com.intellij.plugin.copyOptionPath.CopyOptionPathApplicationListener"/>
+
+    <!-- Advanced setting to control mouse click interception -->
+    <advancedSetting id="copy.option.path.mouse.intercept"
+                     default="false"
+                     groupKey="group.advanced.settings.copy.option.path"
+                     bundle="messages.CopyOptionPathBundle"/>
   </extensions>
 
   <actions>

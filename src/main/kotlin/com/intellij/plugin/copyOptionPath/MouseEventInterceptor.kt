@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.MouseShortcut
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.util.SystemInfo
 import java.awt.AWTEvent
 import java.awt.event.InputEvent
@@ -25,6 +26,7 @@ class MouseEventInterceptor : Disposable {
 
     companion object {
         private const val COPY_OPTIONS_PATH_ACTION_ID = "CopyOptionsPath"
+        private const val MOUSE_INTERCEPT_SETTING_ID = "copy.option.path.mouse.intercept"
 
         @JvmStatic
         fun getInstance(): MouseEventInterceptor = service()
@@ -55,10 +57,16 @@ class MouseEventInterceptor : Disposable {
      * Intercepts mouse events and blocks MOUSE_PRESSED if it matches
      * the CopyOptionsPath shortcut, preventing component activation.
      *
+     * This behavior is controlled by the "copy.option.path.mouse.intercept" advanced setting.
+     * When disabled (default), the interceptor does not block any events.
+     *
      * @param event The AWT event to process.
      * @return true if the event should be blocked (not dispatched further), false otherwise.
      */
     private fun interceptMouseEvent(event: AWTEvent): Boolean {
+        // Check if the feature is enabled in Advanced Settings
+        if (!AdvancedSettings.getBoolean(MOUSE_INTERCEPT_SETTING_ID)) return false
+
         if (event !is MouseEvent) return false
         if (event.id != MouseEvent.MOUSE_PRESSED) return false
 
