@@ -54,19 +54,32 @@ Settings | Editor | General | Auto Import | Java | Insert imports on paste:
 
 ### Advanced Settings
 
-The plugin provides an optional setting in **Settings | Advanced Settings** under the **Copy Option Path** group:
+The plugin provides settings in **Settings | Advanced Settings** under the **Copy Option Path** group:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
 | **Intercept Ctrl/Cmd+Click for Copy Option Path** | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the option path **without activating UI components** like checkboxes or buttons. |
+| **Path separator style** | Pipe | Choose the separator character used between path components in the copied option path. |
 
-#### When to Enable
+#### Path Separator Styles
 
-Enable this setting if you want Ctrl/Cmd+Click to **only** copy the path without triggering the underlying UI element. This is useful when:
+You can customize how path components are separated in the copied text:
+
+| Style | Example Output |
+|-------|----------------|
+| **Pipe** (default) | `Settings \| Editor \| Code Style` |
+| **Arrow** | `Settings > Editor > Code Style` |
+| **Unicode Arrow** | `Settings → Editor → Code Style` |
+| **Guillemet** | `Settings » Editor » Code Style` |
+| **Triangle** | `Settings ▸ Editor ▸ Code Style` |
+
+#### When to Enable Mouse Interception
+
+Enable the mouse interception setting if you want Ctrl/Cmd+Click to **only** copy the path without triggering the underlying UI element. This is useful when:
 - You frequently Ctrl+Click on checkboxes and don't want them to toggle
 - You want to copy paths from buttons without activating them
 
-#### When to Keep Disabled (Default)
+#### When to Keep Mouse Interception Disabled (Default)
 
 Keep the default (disabled) if:
 - You rarely use Ctrl/Cmd+Click on interactive elements

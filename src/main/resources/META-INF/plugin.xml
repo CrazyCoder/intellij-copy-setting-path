@@ -25,6 +25,13 @@
                      default="false"
                      groupKey="group.advanced.settings.copy.option.path"
                      bundle="messages.CopyOptionPathBundle"/>
+
+    <!-- Advanced setting for path separator style -->
+    <advancedSetting id="copy.option.path.separator"
+                     default="PIPE"
+                     enumClass="com.intellij.plugin.copyOptionPath.PathSeparator"
+                     groupKey="group.advanced.settings.copy.option.path"
+                     bundle="messages.CopyOptionPathBundle"/>
   </extensions>
 
   <actions>

@@ -138,14 +138,15 @@ fun getPathFromSettingsDialog(settings: SettingsDialog): String? {
  *
  * @param treePath Array of tree path nodes.
  * @param path StringBuilder to append path segments to.
+ * @param separator The separator to use between path components.
  */
-fun appendTreePath(treePath: Array<out Any>, path: StringBuilder) {
+fun appendTreePath(treePath: Array<out Any>, path: StringBuilder, separator: String = PathConstants.SEPARATOR) {
     treePath.forEach { node ->
         val pathStr = node.toString()
         if (pathStr.isEmpty()) {
-            extractMyTextField(node)?.let { appendItem(path, it) }
+            extractMyTextField(node)?.let { appendItem(path, it, separator) }
         } else {
-            appendItem(path, pathStr)
+            appendItem(path, pathStr, separator)
         }
     }
 }
@@ -180,20 +181,21 @@ fun getConvertedMousePoint(event: AnActionEvent, destination: Component): Point?
  *
  * @param src The source component.
  * @param path StringBuilder to append path segments to.
+ * @param separator The separator to use between path components.
  */
-fun getMiddlePath(src: Component, path: StringBuilder) {
+fun getMiddlePath(src: Component, path: StringBuilder, separator: String = PathConstants.SEPARATOR) {
     // Add selected tab name if present
     UIUtil.getParentOfType(JBTabs::class.java, src)?.selectedInfo?.text?.let { tabText ->
         if (tabText.isNotEmpty()) {
-            path.append(tabText).append(PathConstants.SEPARATOR)
+            path.append(tabText).append(separator)
         }
     }
 
     // Add titled separator group name if present (e.g., "Java" section in Auto Import settings)
-    findPrecedingTitledSeparator(src)?.let { separator ->
-        val separatorText = separator.text
+    findPrecedingTitledSeparator(src)?.let { titledSeparator ->
+        val separatorText = titledSeparator.text
         if (!separatorText.isNullOrEmpty()) {
-            appendItem(path, separatorText)
+            appendItem(path, separatorText, separator)
         }
     }
 
@@ -201,7 +203,7 @@ fun getMiddlePath(src: Component, path: StringBuilder) {
     (src.parent as? JPanel)?.let { parent ->
         (parent.border as? IdeaTitledBorder)?.title?.let { title ->
             if (title.isNotEmpty()) {
-                appendItem(path, title)
+                appendItem(path, title, separator)
             }
         }
     }
@@ -292,10 +294,11 @@ private fun findAllTitledSeparators(container: Container): List<TitledSeparator>
  *
  * @param path StringBuilder to append to.
  * @param item The item to append.
+ * @param separator The separator to use between path components.
  */
-fun appendItem(path: StringBuilder, item: String?) {
-    if (!item.isNullOrEmpty() && !path.trimEnd { it == ' ' || it == '|' }.endsWith(item)) {
-        path.append(item).append(PathConstants.SEPARATOR)
+fun appendItem(path: StringBuilder, item: String?, separator: String = PathConstants.SEPARATOR) {
+    if (!item.isNullOrEmpty() && !path.trimEnd { it in PathSeparator.allSeparatorChars }.endsWith(item)) {
+        path.append(item).append(separator)
     }
 }
 
@@ -312,13 +315,33 @@ fun appendSrcText(path: StringBuilder, text: String?) {
 }
 
 /**
- * Trims the final result by removing trailing separators and HTML tags.
+ * Trims the final result by removing trailing separators, HTML tags, and Advanced Settings IDs.
+ *
+ * Advanced Settings UI may append setting IDs to labels when searching by ID
+ * (e.g., "Path separator style:copy.option.path.separator"). This function
+ * removes such IDs to produce clean paths.
  *
  * @param path The path StringBuilder to process.
  * @return The cleaned path string.
  */
 fun trimFinalResult(path: StringBuilder): String {
-    return path.toString().trimEnd { it == '|' || it == ' ' }.removeHtmlTags()
+    return path.toString()
+        .trimEnd { it in PathSeparator.allSeparatorChars }
+        .removeHtmlTags()
+        .removeAdvancedSettingIds()
+}
+
+/**
+ * Removes Advanced Settings IDs that may be appended to labels.
+ *
+ * Pattern: "Label text:setting.id.here" -> "Label text"
+ * The ID pattern is: colon followed by a dotted identifier (e.g., "copy.option.path.separator").
+ * Must contain at least one dot to distinguish from regular text ending with ":word".
+ */
+private fun String.removeAdvancedSettingIds(): String {
+    // Pattern matches: colon followed by a dotted setting ID at the end
+    // Requires at least one dot to avoid false positives (e.g., ":enabled" vs ":some.setting.id")
+    return replace(Regex(":[a-z][a-z0-9]*(?:\\.[a-z0-9]+)+$"), "")
 }
 
 /**
@@ -343,8 +366,9 @@ fun findInheritedField(type: Class<*>, name: String, orTypeName: String? = null)
  *
  * @param configurable The configurable instance.
  * @param path StringBuilder to append path segments to.
+ * @param separator The separator to use between path components.
  */
-fun appendPathFromProjectStructureDialog(configurable: Configurable, path: StringBuilder) {
+fun appendPathFromProjectStructureDialog(configurable: Configurable, path: StringBuilder, separator: String = PathConstants.SEPARATOR) {
     runCatching {
         val cfg = Class.forName(
             PathConstants.PROJECT_STRUCTURE_CONFIGURABLE_CLASS, true, configurable.javaClass.classLoader
@@ -357,12 +381,12 @@ fun appendPathFromProjectStructureDialog(configurable: Configurable, path: Strin
         // Try to get the separator (section name) from SidePanel
         getSidePanelSeparatorForConfigurable(configurable, cfg, categoryConfigurable)?.let { sectionName ->
             if (sectionName != PathConstants.IGNORED_SEPARATOR) {
-                appendItem(path, sectionName)
+                appendItem(path, sectionName, separator)
             }
         }
 
         // Add the category name (e.g., "Project", "Modules")
-        appendItem(path, categoryConfigurable.displayName)
+        appendItem(path, categoryConfigurable.displayName, separator)
     }.onFailure { e ->
         when (e) {
             is ClassNotFoundException -> LOG.debug("ProjectStructureConfigurable not available: ${e.message}")
