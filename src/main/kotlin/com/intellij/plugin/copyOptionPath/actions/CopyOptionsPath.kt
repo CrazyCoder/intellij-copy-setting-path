@@ -17,6 +17,17 @@ import java.awt.Component
 import javax.swing.AbstractButton
 import javax.swing.JLabel
 
+/**
+ * Action that copies the full navigation path to the currently focused UI option.
+ *
+ * This action allows users to copy paths like "Settings | Editor | Code Style | Java"
+ * from IDE dialogs to the clipboard. It works with:
+ * - Settings dialogs (via breadcrumb extraction)
+ * - Project Structure dialog (IntelliJ IDEA and EDU products)
+ * - Tree structures, tabs, titled panels, buttons, and labels
+ *
+ * The action can be triggered via context menu or Ctrl+Click (Cmd+Click on macOS).
+ */
 class CopyOptionsPath : DumbAwareAction() {
 
     init {
@@ -31,8 +42,7 @@ class CopyOptionsPath : DumbAwareAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         val src = e.getData(PlatformDataKeys.CONTEXT_COMPONENT) ?: return
-        val path = StringBuilder()
-        if (!buildOptionPath(src, path, e)) return
+        val path = buildOptionPath(src, e) ?: return
 
         val result = trimFinalResult(path)
         LOG.debug("Selected path: $result")
@@ -40,53 +50,126 @@ class CopyOptionsPath : DumbAwareAction() {
         CopyPasteManager.getInstance().setContents(TextTransferable(result, result))
     }
 
-    private fun buildOptionPath(src: Component, path: StringBuilder, e: AnActionEvent): Boolean {
-        val dialog = DialogWrapper.findInstance(src) ?: return false
+    /**
+     * Builds the complete option path for the given source component.
+     *
+     * @param src The source UI component.
+     * @param e The action event containing context information.
+     * @return StringBuilder with the built path, or null if path cannot be determined.
+     */
+    private fun buildOptionPath(src: Component, e: AnActionEvent): StringBuilder? {
+        val dialog = DialogWrapper.findInstance(src) ?: return null
+        val path = StringBuilder()
 
-        if (dialog is SettingsDialog) {
-            // Try the new approach: get path directly from SettingsEditor via component hierarchy
-            val settingsEditorPath = getPathFromSettingsEditor(src)
-            if (!settingsEditorPath.isNullOrEmpty()) {
-                path.append("Settings | ")
-                path.append(settingsEditorPath.joinToString(" | "))
-                path.append(" | ")
-            } else {
-                // Fall back to the old approach via SettingsDialog
-                val startPath = getPathFromSettingsDialog(dialog)
-                appendItem(path, startPath)
-            }
-        } else {
-            appendItem(path, dialog.title)
-            if (dialog is SingleConfigurableEditor && (ApplicationNamesInfo.getInstance().productName.equals(
-                    "idea", true
-                ) || ApplicationNamesInfo.getInstance().productName.contains("edu", true))
-            ) {
-                appendPathFromProjectStructureDialog(dialog.configurable, path)
-            }
+        when (dialog) {
+            is SettingsDialog -> appendSettingsDialogPath(src, dialog, path)
+            else -> appendGenericDialogPath(dialog, path)
         }
 
         getMiddlePath(src, path)
+        appendTreePathIfApplicable(src, e, path)
+        appendSourceComponentText(src, path)
 
-        if (src is TreeTable) {
-            val selectedRow = if (src.selectedRow == -1) detectRowFromMousePoint(src, e) else src.selectedRow
-            if (selectedRow != -1) {
-                val pathForRow = src.tree.getPathForRow(selectedRow)
-                val rowPath = pathForRow?.path
-                if (rowPath != null) appendTreePath(rowPath, path)
-            }
-        } else if (src is Tree) {
-            val point = getConvertedMousePoint(e, src)
-            if (point != null) {
-                val rowForLocation = src.getRowForLocation(point.x, point.y)
-                val rowPath = if (rowForLocation > 0) src.getPathForRow(rowForLocation) else null
-                if (rowPath != null) {
-                    appendTreePath(rowPath.path, path)
-                }
+        return path
+    }
+
+    /**
+     * Appends path information from a Settings dialog.
+     */
+    private fun appendSettingsDialogPath(src: Component, dialog: SettingsDialog, path: StringBuilder) {
+        // Try the new approach: get path directly from SettingsEditor via component hierarchy
+        val settingsEditorPath = getPathFromSettingsEditor(src)
+        if (!settingsEditorPath.isNullOrEmpty()) {
+            path.append(SETTINGS_PREFIX)
+            path.append(PATH_SEPARATOR)
+            path.append(settingsEditorPath.joinToString(PATH_SEPARATOR))
+            path.append(PATH_SEPARATOR)
+        } else {
+            // Fall back to the old approach via SettingsDialog
+            appendItem(path, getPathFromSettingsDialog(dialog))
+        }
+    }
+
+    /**
+     * Appends path information from a generic (non-Settings) dialog.
+     */
+    private fun appendGenericDialogPath(dialog: DialogWrapper, path: StringBuilder) {
+        appendItem(path, dialog.title)
+
+        if (dialog is SingleConfigurableEditor && isProjectStructureSupported()) {
+            appendPathFromProjectStructureDialog(dialog.configurable, path)
+        }
+    }
+
+    /**
+     * Checks if the current IDE product supports Project Structure dialog.
+     *
+     * Project Structure is available in IntelliJ IDEA (Community/Ultimate) and EDU products.
+     */
+    private fun isProjectStructureSupported(): Boolean {
+        val productName = ApplicationNamesInfo.getInstance().productName.lowercase()
+        return IDEA_PRODUCT_IDENTIFIERS.any { productName.contains(it) }
+    }
+
+    /**
+     * Appends tree path information if the source component is a tree or tree table.
+     */
+    private fun appendTreePathIfApplicable(src: Component, e: AnActionEvent, path: StringBuilder) {
+        when (src) {
+            is TreeTable -> appendTreeTablePath(src, e, path)
+            is Tree -> appendTreePath(src, e, path)
+        }
+    }
+
+    /**
+     * Appends path from a TreeTable component.
+     */
+    private fun appendTreeTablePath(treeTable: TreeTable, e: AnActionEvent, path: StringBuilder) {
+        val selectedRow = treeTable.selectedRow.takeIf { it != -1 } ?: detectRowFromMousePoint(treeTable, e)
+        if (selectedRow != -1) {
+            treeTable.tree.getPathForRow(selectedRow)?.path?.let { rowPath ->
+                appendTreePath(rowPath, path)
             }
         }
-        //end path
-        val text = (src as? AbstractButton)?.text ?: (src as? JLabel)?.text ?: src.name
+    }
+
+    /**
+     * Appends path from a Tree component.
+     */
+    private fun appendTreePath(tree: Tree, e: AnActionEvent, path: StringBuilder) {
+        val point = getConvertedMousePoint(e, tree) ?: return
+        val rowForLocation = tree.getRowForLocation(point.x, point.y)
+        if (rowForLocation > 0) {
+            tree.getPathForRow(rowForLocation)?.let { treePath ->
+                appendTreePath(treePath.path, path)
+            }
+        }
+    }
+
+    /**
+     * Appends the text from the source component (button, label, or component name).
+     */
+    private fun appendSourceComponentText(src: Component, path: StringBuilder) {
+        val text = when (src) {
+            is AbstractButton -> src.text
+            is JLabel -> src.text
+            else -> src.name
+        }
         appendSrcText(path, text)
-        return true
+    }
+
+    @Suppress("CompanionObjectInExtension")
+    companion object {
+        /** Path separator used between components. */
+        private const val PATH_SEPARATOR = " | "
+
+        /** Prefix for Settings dialog paths. */
+        private const val SETTINGS_PREFIX = "Settings"
+
+        /**
+         * Product identifiers for IDEs that support Project Structure dialog.
+         * Includes IntelliJ IDEA variants (idea, intellij) and educational products.
+         */
+        private val IDEA_PRODUCT_IDENTIFIERS = listOf("idea", "intellij", "edu")
     }
 }
