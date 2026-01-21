@@ -14,6 +14,7 @@ import com.intellij.ui.tabs.JBTabs
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
+import javax.swing.JTable
 import java.awt.Container
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -162,6 +163,19 @@ fun detectRowFromMousePoint(treeTable: TreeTable, e: AnActionEvent): Int {
     val point = getConvertedMousePoint(e, treeTable) ?: return -1
     val rowAtPoint = treeTable.rowAtPoint(point)
     return if (rowAtPoint <= treeTable.rowCount) rowAtPoint else -1
+}
+
+/**
+ * Detects the row at the mouse pointer position in a JTable.
+ *
+ * @param table The JTable component.
+ * @param e The action event containing mouse information.
+ * @return The row index at the mouse position, or -1 if not found.
+ */
+fun detectRowFromMousePoint(table: JTable, e: AnActionEvent): Int {
+    val point = getConvertedMousePoint(e, table) ?: return -1
+    val rowAtPoint = table.rowAtPoint(point)
+    return if (rowAtPoint in 0 until table.rowCount) rowAtPoint else -1
 }
 
 /**

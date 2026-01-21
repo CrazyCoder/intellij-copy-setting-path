@@ -17,6 +17,7 @@ import com.intellij.util.ui.TextTransferable
 import java.awt.Component
 import javax.swing.AbstractButton
 import javax.swing.JLabel
+import javax.swing.JTable
 
 /**
  * Action that copies the full navigation path to the currently focused UI option.
@@ -119,12 +120,13 @@ class CopyOptionsPath : DumbAwareAction() {
     }
 
     /**
-     * Appends tree path information if the source component is a tree or tree table.
+     * Appends tree/table path information if the source component is a tree, tree table, or table.
      */
     private fun appendTreePathIfApplicable(src: Component, e: AnActionEvent, path: StringBuilder, separator: String) {
         when (src) {
             is TreeTable -> appendTreeTablePath(src, e, path, separator)
             is Tree -> appendTreeComponentPath(src, e, path, separator)
+            is JTable -> appendTablePath(src, e, path, separator)
         }
     }
 
@@ -149,6 +151,23 @@ class CopyOptionsPath : DumbAwareAction() {
         if (rowForLocation > 0) {
             tree.getPathForRow(rowForLocation)?.let { treePath ->
                 appendTreePath(treePath.path, path, separator)
+            }
+        }
+    }
+
+    /**
+     * Appends path from a JTable component.
+     *
+     * For tables like Registry dialog, extracts the value from the first column (key/name)
+     * of the selected or clicked row.
+     */
+    private fun appendTablePath(table: JTable, e: AnActionEvent, path: StringBuilder, separator: String) {
+        val selectedRow = table.selectedRow.takeIf { it != -1 } ?: detectRowFromMousePoint(table, e)
+        if (selectedRow != -1) {
+            // Get the value from the first column (typically the key/name column)
+            val value = table.getValueAt(selectedRow, 0)
+            value?.toString()?.takeIf { it.isNotEmpty() }?.let { keyValue ->
+                appendItem(path, keyValue, separator)
             }
         }
     }
