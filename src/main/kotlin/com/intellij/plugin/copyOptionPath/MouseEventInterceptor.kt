@@ -99,9 +99,9 @@ class MouseEventInterceptor : Disposable {
         // The modifiersEx includes BUTTON1_DOWN_MASK during press, so we need to mask it out
         val relevantModifiers = modifiersEx and (
                 InputEvent.CTRL_DOWN_MASK or
-                InputEvent.META_DOWN_MASK or
-                InputEvent.SHIFT_DOWN_MASK or
-                InputEvent.ALT_DOWN_MASK
+                        InputEvent.META_DOWN_MASK or
+                        InputEvent.SHIFT_DOWN_MASK or
+                        InputEvent.ALT_DOWN_MASK
                 )
 
         if (relevantModifiers != expectedModifier) return false

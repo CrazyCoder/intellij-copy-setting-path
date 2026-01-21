@@ -32,6 +32,8 @@ class CopyOptionsPath : DumbAwareAction() {
 
     init {
         isEnabledInModalContext = true
+        // Register the mouse event interceptor lazily on first action instantiation
+        MouseEventInterceptor.getInstance().register()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
