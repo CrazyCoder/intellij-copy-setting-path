@@ -78,7 +78,12 @@ class CopyOptionsPath : DumbAwareAction() {
     /**
      * Appends path information from a Settings dialog.
      */
-    private fun appendSettingsDialogPath(src: Component, dialog: SettingsDialog, path: StringBuilder, separator: String) {
+    private fun appendSettingsDialogPath(
+        src: Component,
+        dialog: SettingsDialog,
+        path: StringBuilder,
+        separator: String
+    ) {
         // Try the new approach: get path directly from SettingsEditor via component hierarchy
         val settingsEditorPath = getPathFromSettingsEditor(src)
         if (!settingsEditorPath.isNullOrEmpty()) {

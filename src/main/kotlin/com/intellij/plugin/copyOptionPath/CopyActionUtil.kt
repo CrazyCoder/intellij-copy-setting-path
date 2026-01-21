@@ -368,7 +368,11 @@ fun findInheritedField(type: Class<*>, name: String, orTypeName: String? = null)
  * @param path StringBuilder to append path segments to.
  * @param separator The separator to use between path components.
  */
-fun appendPathFromProjectStructureDialog(configurable: Configurable, path: StringBuilder, separator: String = PathConstants.SEPARATOR) {
+fun appendPathFromProjectStructureDialog(
+    configurable: Configurable,
+    path: StringBuilder,
+    separator: String = PathConstants.SEPARATOR
+) {
     runCatching {
         val cfg = Class.forName(
             PathConstants.PROJECT_STRUCTURE_CONFIGURABLE_CLASS, true, configurable.javaClass.classLoader
