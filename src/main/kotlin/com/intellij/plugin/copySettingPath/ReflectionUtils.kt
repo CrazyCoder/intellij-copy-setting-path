@@ -32,6 +32,9 @@ fun findInheritedField(type: Class<*>, name: String, orTypeName: String? = null)
  * This is useful when we need to find a specific IntelliJ component
  * without having a direct dependency on its class.
  *
+ * Handles anonymous inner classes (e.g., ConfigurableEditor$1 matches ConfigurableEditor)
+ * by checking both exact name match and superclass hierarchy.
+ *
  * @param component The component to start searching from.
  * @param className The fully qualified class name to find.
  * @return The parent component with the matching class name, or null if not found.
@@ -39,12 +42,39 @@ fun findInheritedField(type: Class<*>, name: String, orTypeName: String? = null)
 fun findParentByClassName(component: java.awt.Component, className: String): java.awt.Component? {
     var current: java.awt.Component? = component
     while (current != null) {
-        if (current.javaClass.name == className) {
+        if (matchesClassName(current.javaClass, className)) {
             return current
         }
         current = current.parent
     }
     return null
+}
+
+/**
+ * Checks if a class matches the target class name.
+ * Handles exact matches, anonymous inner classes, and inheritance.
+ */
+private fun matchesClassName(clazz: Class<*>, targetClassName: String): Boolean {
+    // Check exact match
+    if (clazz.name == targetClassName) {
+        return true
+    }
+
+    // Check if it's an anonymous/inner class of the target (e.g., ConfigurableEditor$1)
+    if (clazz.name.startsWith("$targetClassName\$")) {
+        return true
+    }
+
+    // Check superclass hierarchy (handles anonymous classes that extend the target)
+    var superClass: Class<*>? = clazz.superclass
+    while (superClass != null && superClass != Any::class.java) {
+        if (superClass.name == targetClassName) {
+            return true
+        }
+        superClass = superClass.superclass
+    }
+
+    return false
 }
 
 /**
