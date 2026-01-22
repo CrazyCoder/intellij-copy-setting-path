@@ -28,17 +28,8 @@ navigation path to any UI setting in IDE dialogs (such as Settings, Project Stru
 
 ## Usage
 
-### Quick Copy (Recommended)
-
 **Ctrl+Click** (or **Cmd+Click** on macOS) on any option, label, button, or setting in a dialog to instantly copy its
 full path to the clipboard.
-
-### Context Menu
-
-1. Open any IDE dialog (Settings, Project Structure, etc.)
-2. Navigate to the desired option
-3. Right-click on the option
-4. Select **Copy Setting Path** from the context menu
 
 ### Example Output
 

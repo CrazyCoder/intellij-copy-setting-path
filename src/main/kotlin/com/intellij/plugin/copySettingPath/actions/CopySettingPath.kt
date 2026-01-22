@@ -21,7 +21,7 @@ import com.intellij.util.ui.TextTransferable
  * - Project Structure dialog (IntelliJ IDEA and EDU products)
  * - Tree structures, tabs, titled panels, buttons, and labels
  *
- * The action can be triggered via context menu or Ctrl+Click (Cmd+Click on macOS).
+ * The action is triggered via Ctrl+Click (Cmd+Click on macOS).
  */
 class CopySettingPath : DumbAwareAction() {
 

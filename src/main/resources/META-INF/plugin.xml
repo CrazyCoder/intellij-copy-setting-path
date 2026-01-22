@@ -19,7 +19,7 @@
 
     <h3>Usage</h3>
     <ul>
-      <li><b>Settings/Dialogs:</b> Right-click on any UI element and select <b>Copy Setting Path</b>, or use <b>Ctrl+Click</b> (Cmd+Click on macOS)</li>
+      <li><b>Settings/Dialogs:</b> Use <b>Ctrl+Click</b> (Cmd+Click on macOS) on any UI element</li>
       <li><b>Main Menu:</b> Enable mouse interception in Advanced Settings, then <b>Ctrl+Click</b> on any menu item to copy its path (the menu action will not execute)</li>
       <li>The full path is copied to the clipboard</li>
     </ul>
