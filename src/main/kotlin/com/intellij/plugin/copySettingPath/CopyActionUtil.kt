@@ -83,7 +83,15 @@ object RegexPatterns {
     /** Pattern to match HTML tags for removal. */
     val HTML_TAGS: Regex = Regex("<[^>]*>")
 
-    /** Pattern to match Advanced Settings IDs appended to labels. */
+    /**
+     * Pattern to match Advanced Settings ID display in HTML labels.
+     * In Advanced Settings, the setting ID is shown after a <br> tag, e.g.:
+     * <html>Label text<br><pre><font...>setting.id.here</font>...</html>
+     * This pattern removes the <br> and everything after it.
+     */
+    val HTML_SETTING_ID_SUFFIX: Regex = Regex("<br>.*", RegexOption.DOT_MATCHES_ALL)
+
+    /** Pattern to match Advanced Settings IDs appended to labels (requires colon separator). */
     val ADVANCED_SETTING_ID: Regex = Regex(":[a-z][a-z0-9]*(?:\\.[a-z0-9]+)+$")
 
     /** Pattern to detect default toString() object references (e.g., "ClassName@hexAddress"). */
@@ -95,10 +103,14 @@ object RegexPatterns {
 // ============================================================================
 
 /**
- * Removes all HTML tags from a string.
- * Uses cached regex pattern for performance.
+ * Removes all HTML tags from a string, first removing Advanced Settings ID suffixes
+ * (shown after <br> in Advanced Settings labels) to prevent them from being
+ * concatenated with label text.
+ * Uses cached regex patterns for performance.
  */
-fun String.removeHtmlTags(): String = replace(RegexPatterns.HTML_TAGS, "")
+fun String.removeHtmlTags(): String = this
+    .replace(RegexPatterns.HTML_SETTING_ID_SUFFIX, "")
+    .replace(RegexPatterns.HTML_TAGS, "")
 
 /**
  * Removes Advanced Settings IDs that may be appended to labels.
