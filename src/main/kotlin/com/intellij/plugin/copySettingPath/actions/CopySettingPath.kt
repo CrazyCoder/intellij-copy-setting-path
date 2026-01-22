@@ -17,7 +17,9 @@ import com.intellij.plugin.copySettingPath.appendSrcText
 import com.intellij.plugin.copySettingPath.appendTreePath
 import com.intellij.plugin.copySettingPath.detectColumnFromMousePoint
 import com.intellij.plugin.copySettingPath.detectRowFromMousePoint
+import com.intellij.plugin.copySettingPath.detectListIndexFromMousePoint
 import com.intellij.plugin.copySettingPath.extractComponentValue
+import com.intellij.plugin.copySettingPath.extractListItemDisplayText
 import com.intellij.plugin.copySettingPath.findAdjacentComponent
 import com.intellij.plugin.copySettingPath.getConvertedMousePoint
 import com.intellij.plugin.copySettingPath.getMiddlePath
@@ -30,6 +32,7 @@ import com.intellij.util.ui.TextTransferable
 import java.awt.Component
 import javax.swing.AbstractButton
 import javax.swing.JLabel
+import javax.swing.JList
 import javax.swing.JTable
 import javax.swing.JTree
 
@@ -134,13 +137,14 @@ class CopySettingPath : DumbAwareAction() {
     }
 
     /**
-     * Appends tree/table path information if the source component is a tree, tree table, or table.
+     * Appends tree/table/list path information if the source component is a tree, tree table, table, or list.
      */
     private fun appendTreePathIfApplicable(src: Component, e: AnActionEvent, path: StringBuilder, separator: String) {
         when (src) {
             is TreeTable -> appendTreeTablePath(src, e, path, separator)
             is Tree -> appendTreeComponentPath(src, e, path, separator)
             is JTable -> appendTablePath(src, e, path, separator)
+            is JList<*> -> appendListPath(src, e, path, separator)
         }
     }
 
@@ -206,6 +210,25 @@ class CopySettingPath : DumbAwareAction() {
             val value = table.getValueAt(selectedRow, selectedColumn)
             value?.toString()?.takeIf { it.isNotEmpty() }?.let { cellValue ->
                 appendItem(path, cellValue, separator)
+            }
+        }
+    }
+
+    /**
+     * Appends path from a JList component.
+     *
+     * For lists like Notifications settings, extracts the display text of the clicked/selected item.
+     * Prioritizes the clicked item over the selected item to ensure accurate path copying.
+     */
+    private fun appendListPath(list: JList<*>, e: AnActionEvent, path: StringBuilder, separator: String) {
+        // Prioritize clicked index over selected index
+        val clickedIndex = detectListIndexFromMousePoint(list, e)
+        val targetIndex = if (clickedIndex != -1) clickedIndex else list.selectedIndex
+        if (targetIndex != -1 && targetIndex < list.model.size) {
+            val item = list.model.getElementAt(targetIndex)
+            val displayText = extractListItemDisplayText(list, item, targetIndex)
+            displayText?.takeIf { it.isNotEmpty() }?.let { itemText ->
+                appendItem(path, itemText, separator)
             }
         }
     }

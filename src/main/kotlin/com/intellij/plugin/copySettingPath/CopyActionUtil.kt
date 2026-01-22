@@ -315,6 +315,111 @@ fun detectColumnFromMousePoint(table: JTable, e: AnActionEvent): Int {
 }
 
 /**
+ * Detects the list item index at the mouse pointer position in a JList.
+ *
+ * @param list The JList component.
+ * @param e The action event containing mouse information.
+ * @return The list index at the mouse position, or -1 if not found.
+ */
+fun detectListIndexFromMousePoint(list: JList<*>, e: AnActionEvent): Int {
+    val point = getConvertedMousePoint(e, list) ?: return -1
+    val indexAtPoint = list.locationToIndex(point)
+    // locationToIndex returns the closest index, so we need to verify the point is actually within the cell
+    if (indexAtPoint >= 0 && indexAtPoint < list.model.size) {
+        val cellBounds = list.getCellBounds(indexAtPoint, indexAtPoint)
+        if (cellBounds != null && cellBounds.contains(point)) {
+            return indexAtPoint
+        }
+    }
+    return -1
+}
+
+/**
+ * Extracts the display text from a JList item using its renderer.
+ *
+ * Lists often use custom renderers to display human-readable text for objects.
+ * This function uses the renderer to get the actual displayed text rather than
+ * the raw object's toString().
+ *
+ * @param list The JList containing the item.
+ * @param item The item to extract display text from.
+ * @param index The index of the item in the list.
+ * @return The rendered display text, or null if not extractable.
+ */
+@Suppress("UNCHECKED_CAST")
+fun extractListItemDisplayText(list: JList<*>, item: Any?, index: Int): String? {
+    if (item == null) return null
+
+    // Try to get the display text from the renderer
+    runCatching {
+        val renderer = list.cellRenderer as? ListCellRenderer<Any?>
+        if (renderer != null) {
+            val renderedComponent = renderer.getListCellRendererComponent(
+                list as JList<Any?>,
+                item,
+                index,
+                false,
+                false
+            )
+
+            // Extract text from the rendered component
+            val text = extractTextFromListRenderedComponent(renderedComponent)
+            if (!text.isNullOrBlank()) {
+                return text
+            }
+        }
+    }.onFailure { e ->
+        LOG.debug("Error extracting list item display text via renderer: ${e.message}")
+    }
+
+    // Fallback: try common interfaces for display name
+    runCatching {
+        val displayNameMethod = item.javaClass.getMethod("getDisplayName")
+        displayNameMethod.isAccessible = true
+        val result = displayNameMethod.invoke(item)?.toString()
+        if (!result.isNullOrBlank()) return result
+    }
+
+    runCatching {
+        val getNameMethod = item.javaClass.getMethod("getName")
+        getNameMethod.isAccessible = true
+        val result = getNameMethod.invoke(item)?.toString()
+        if (!result.isNullOrBlank()) return result
+    }
+
+    // Final fallback: use toString()
+    return item.toString().takeIf { it.isNotBlank() }
+}
+
+/**
+ * Extracts text from a rendered list component (typically a JLabel or SimpleColoredComponent).
+ */
+private fun extractTextFromListRenderedComponent(component: Component): String? {
+    return when (component) {
+        is JLabel -> component.text?.removeHtmlTagsInternal()?.takeIf { it.isNotBlank() }
+        is SimpleColoredComponent -> {
+            runCatching {
+                component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
+            }.getOrNull()
+        }
+        is Container -> {
+            // Search for a JLabel or SimpleColoredComponent within the container
+            for (child in component.components) {
+                val text = extractTextFromListRenderedComponent(child)
+                if (!text.isNullOrBlank()) return text
+            }
+            null
+        }
+        else -> null
+    }
+}
+
+/**
+ * Removes HTML tags from a string (internal helper to avoid conflicts).
+ */
+private fun String.removeHtmlTagsInternal(): String = replace(Regex("<[^>]*>"), "")
+
+/**
  * Converts the mouse event coordinates to the destination component's coordinate space.
  *
  * @param event The action event containing the input event.
