@@ -177,15 +177,48 @@ class CopySettingPath : DumbAwareAction() {
 
     /**
      * Appends the text from the source component (button, label, or component name).
+     *
+     * If the component text ends with ":" (colon), this indicates there is likely
+     * an adjacent value component (combo box, text field, etc.). In such cases,
+     * we find the adjacent component and append its current value.
+     *
+     * Example: "Logger:" with adjacent combo box "Unspecified" -> "Logger: Unspecified"
      */
     private fun appendSourceComponentText(src: Component, path: StringBuilder) {
-        val text = when (src) {
+        val rawText = when (src) {
             is AbstractButton -> src.text
             is JLabel -> src.text
             else -> src.name
         }
-        appendSrcText(path, text)
+
+        val text = rawText?.removeHtmlTags()?.trim()
+
+        if (text.isNullOrEmpty()) {
+            return
+        }
+
+        // Check if the text ends with ":" - indicates an adjacent value component
+        if (text.endsWith(":")) {
+            appendSrcText(path, text)
+            // Try to find and append the adjacent component's value
+            findAdjacentComponent(src)?.let { adjacentComponent ->
+                extractComponentValue(adjacentComponent)?.let { value ->
+                    // Only append if there's actually a non-empty value
+                    if (value.isNotBlank()) {
+                        path.append(" ")
+                        path.append(value)
+                    }
+                }
+            }
+        } else {
+            appendSrcText(path, text)
+        }
     }
+
+    /**
+     * Removes HTML tags from a string for clean text processing.
+     */
+    private fun String.removeHtmlTags(): String = replace(Regex("<[^>]*>"), "")
 
     @Suppress("CompanionObjectInExtension")
     companion object {

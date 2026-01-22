@@ -44,8 +44,10 @@ full path to the clipboard.
 When you Ctrl+Click on the "Insert imports on paste" dropdown in the Java section of Auto Import settings:
 
 ```
-Settings | Editor | General | Auto Import | Java | Insert imports on paste:
+Settings | Editor | General | Auto Import | Java | Insert imports on paste: Ask
 ```
+
+The plugin automatically detects when a label ends with ":" and appends the current value of the adjacent component (combo box, text field, etc.).
 
 ## Compatibility
 
@@ -95,6 +97,11 @@ Keep the default (disabled) if:
 
 This fork includes important fixes for compatibility with modern IDE versions:
 
+- **Adjacent component value detection** — When clicking on a label that ends with ":" (colon), the plugin now
+  automatically finds the adjacent value component (combo box, text field, spinner, etc.) and appends its current value
+  to the path. For example, clicking on "Logger:" with an adjacent combo box set to "Unspecified" produces
+  `Settings | Languages & Frameworks | JVM Logging | Java | Logger: Unspecified`.
+
 - **JTable support for Registry and similar dialogs** — The plugin now supports copying values from JTable-based dialogs
   like the Registry dialog. Clicking on any table cell copies the value of that specific cell. For example, clicking on
   a registry key name in the Registry dialog (`Help | Find Action... | Registry...`) copies the key name to the
@@ -134,4 +141,4 @@ This project is open source. See the repository for license details.
 ## Contributors
 
 - **Serge Baranov** — Current maintainer
-- **Andrey Dernov** — Original author
+- **Andrey Dernov** — Original author (Copy Option Path plug-in)

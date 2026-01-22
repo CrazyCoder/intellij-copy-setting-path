@@ -636,3 +636,382 @@ private fun findBestSeparator(separatorMap: Any, itemIndex: Int): String? {
  * Removes all HTML tags from a string.
  */
 private fun String.removeHtmlTags(): String = replace(Regex("<[^>]*>"), "")
+
+/**
+ * Finds the adjacent component that follows the given source component.
+ *
+ * In typical Settings panels, labels ending with ":" are followed by input components
+ * like combo boxes, text fields, or checkboxes. This function traverses the parent
+ * container to find such adjacent components.
+ *
+ * @param src The source component (typically a JLabel ending with ":").
+ * @return The adjacent component, or null if not found.
+ */
+fun findAdjacentComponent(src: Component): Component? {
+    // Priority 1: Check if src is a JLabel with labelFor set - this is the most reliable
+    if (src is javax.swing.JLabel) {
+        src.labelFor?.let { target ->
+            if (target.isVisible) {
+                // If labelFor points to a container, search inside for value component
+                val valueComp = findValueComponentIn(target)
+                if (valueComp != null) return valueComp
+                // Otherwise use the target if it's a value component
+                if (isValueComponent(target)) return target
+            }
+        }
+    }
+
+    val parent = src.parent as? Container ?: return null
+
+    // Priority 2: Look for the next visible value component among siblings
+    val components = parent.components
+    val srcIndex = components.indexOf(src)
+    if (srcIndex >= 0) {
+        for (i in (srcIndex + 1) until components.size) {
+            val nextComponent = components[i]
+            if (!nextComponent.isVisible) continue
+            
+            // If it's a value component, return it
+            if (isValueComponent(nextComponent)) {
+                return nextComponent
+            }
+            
+            // If it's a container, search inside for value components
+            if (nextComponent is Container) {
+                val valueComp = findValueComponentIn(nextComponent)
+                if (valueComp != null) return valueComp
+            }
+        }
+    }
+
+    // Priority 3: Try to find a component immediately to the right based on spatial position
+    return findNearbyValueComponent(src, parent)
+}
+
+/**
+ * Recursively searches a container for a value component.
+ * Returns the first value component found, or null.
+ */
+private fun findValueComponentIn(container: Component): Component? {
+    if (isValueComponent(container)) return container
+    
+    if (container is Container) {
+        for (child in container.components) {
+            if (!child.isVisible) continue
+            if (isValueComponent(child)) return child
+            if (child is Container) {
+                val found = findValueComponentIn(child)
+                if (found != null) return found
+            }
+        }
+    }
+    return null
+}
+
+/**
+ * Checks if a component is a value-bearing component (not just a label or spacer).
+ * Excludes large components like panels, text areas, and descriptions.
+ */
+private fun isValueComponent(component: Component): Boolean {
+    // Exclude large text components (descriptions, text areas) - they're typically > 100px tall or very wide
+    if (component.height > 80 || component.width > 400) {
+        // But allow combo boxes and text fields even if they're wide
+        val className = component.javaClass.simpleName
+        if (!className.contains("ComboBox", ignoreCase = true) &&
+            !className.contains("TextField", ignoreCase = true)) {
+            return false
+        }
+    }
+
+    // Exclude text areas and editor panes (used for descriptions)
+    if (component is javax.swing.JTextArea || component is javax.swing.JEditorPane) {
+        return false
+    }
+
+    return when (component) {
+        is javax.swing.JComboBox<*> -> true
+        is javax.swing.JTextField -> true
+        is javax.swing.JCheckBox -> true
+        is javax.swing.JRadioButton -> true
+        is javax.swing.JSpinner -> true
+        is javax.swing.JSlider -> true
+        is javax.swing.JButton -> {
+            // ComboBoxButton is a JButton used by ComboBoxAction
+            component.javaClass.simpleName.contains("ComboBoxButton", ignoreCase = true)
+        }
+        else -> {
+            // Check for ComboBoxButton or similar wrapped components by class name
+            val className = component.javaClass.simpleName
+            (className.contains("ComboBoxButton", ignoreCase = true) ||
+                    className.contains("ComboBox", ignoreCase = true)) &&
+                    !className.contains("Panel", ignoreCase = true)
+        }
+    }
+}
+
+/**
+ * Finds a nearby value component based on spatial proximity.
+ *
+ * This is useful when the adjacent component is not a direct sibling
+ * but is positioned to the right of the source component.
+ * Searches the parent container and ancestor containers if needed.
+ */
+private fun findNearbyValueComponent(src: Component, parent: Container): Component? {
+    // Try to get screen coordinates for accurate comparison
+    val srcScreenBounds = getScreenBounds(src) ?: return null
+
+    var bestCandidate: Component? = null
+    var bestDistance = Int.MAX_VALUE
+
+    // Search in the parent and ancestor containers
+    var currentContainer: Container? = parent
+    var searchDepth = 0
+    val maxSearchDepth = 5
+
+    while (currentContainer != null && searchDepth < maxSearchDepth) {
+        val candidate = findBestCandidateInContainer(src, srcScreenBounds, currentContainer, bestDistance)
+        if (candidate != null && candidate.second < bestDistance) {
+            bestCandidate = candidate.first
+            bestDistance = candidate.second
+        }
+
+        // If we found a good candidate at this level, don't search further up
+        if (bestCandidate != null && bestDistance < 100) {
+            break
+        }
+
+        currentContainer = currentContainer.parent
+        searchDepth++
+    }
+
+    return bestCandidate
+}
+
+/**
+ * Gets the screen bounds of a component, or null if not available.
+ */
+private fun getScreenBounds(component: Component): java.awt.Rectangle? {
+    return runCatching {
+        val location = component.locationOnScreen
+        java.awt.Rectangle(location.x, location.y, component.width, component.height)
+    }.getOrNull()
+}
+
+/**
+ * Finds the best value component candidate within a container.
+ * Returns the component and its distance score, or null if none found.
+ */
+private fun findBestCandidateInContainer(
+    src: Component,
+    srcScreenBounds: java.awt.Rectangle,
+    container: Container,
+    currentBestDistance: Int
+): Pair<Component, Int>? {
+    var bestCandidate: Component? = null
+    var bestDistance = currentBestDistance
+
+    val srcRight = srcScreenBounds.x + srcScreenBounds.width
+    val srcTop = srcScreenBounds.y
+    val srcBottom = srcScreenBounds.y + srcScreenBounds.height
+
+    for (component in container.components) {
+        if (component === src || !component.isVisible) continue
+
+        // Check if it's a value component or search inside containers
+        val valueComponent = if (isValueComponent(component)) {
+            component
+        } else if (component is Container) {
+            findValueComponentIn(component)
+        } else {
+            null
+        }
+
+        if (valueComponent != null) {
+            val compScreenBounds = getScreenBounds(valueComponent) ?: continue
+            val compLeft = compScreenBounds.x
+            val compTop = compScreenBounds.y
+            val compBottom = compScreenBounds.y + compScreenBounds.height
+
+            // Component must be to the right of the source
+            if (compLeft >= srcRight - 5) {
+                val horizontalDist = compLeft - srcRight
+
+                // Strict vertical alignment - components must overlap vertically (same row)
+                val verticalOverlap = kotlin.math.min(srcBottom, compBottom) - kotlin.math.max(srcTop, compTop)
+                
+                if (verticalOverlap > 0) {
+                    // Prefer components that are closer horizontally
+                    val distance = horizontalDist
+                    if (distance < bestDistance) {
+                        bestDistance = distance
+                        bestCandidate = valueComponent
+                    }
+                }
+            }
+        }
+
+        // Recursively search in child containers (but not if we already found a value component inside)
+        if (component is Container && valueComponent == null && component !== src.parent) {
+            val childResult = findBestCandidateInContainer(src, srcScreenBounds, component, bestDistance)
+            if (childResult != null && childResult.second < bestDistance) {
+                bestCandidate = childResult.first
+                bestDistance = childResult.second
+            }
+        }
+    }
+
+    return bestCandidate?.let { Pair(it, bestDistance) }
+}
+
+/**
+ * Extracts the display value from a component.
+ *
+ * Supports various component types commonly found in Settings dialogs:
+ * - JComboBox: returns the rendered display text (not raw value)
+ * - JButton (ComboBoxButton): returns the button text
+ * - JTextField: returns the text content (empty string if empty)
+ * - JCheckBox/JRadioButton: returns the selection state or text
+ * - JSpinner: returns the current value
+ *
+ * @param component The component to extract value from.
+ * @return The display value as a string, or null if not extractable.
+ */
+fun extractComponentValue(component: Component): String? {
+    return when (component) {
+        is javax.swing.JComboBox<*> -> {
+            extractComboBoxDisplayText(component)
+        }
+        is javax.swing.JButton -> {
+            // ComboBoxButton extends JButton and displays its text via getText()
+            component.text?.takeIf { it.isNotBlank() }
+        }
+        is javax.swing.JTextField -> {
+            // Return text even if empty (empty string), but null if text is null
+            component.text ?: ""
+        }
+        is javax.swing.JCheckBox -> {
+            if (component.text.isNullOrBlank()) {
+                if (component.isSelected) "Enabled" else "Disabled"
+            } else {
+                component.text
+            }
+        }
+        is javax.swing.JRadioButton -> {
+            component.text?.takeIf { component.isSelected }
+        }
+        is javax.swing.JSpinner -> {
+            component.value?.toString()
+        }
+        is javax.swing.JSlider -> {
+            component.value.toString()
+        }
+        is javax.swing.text.JTextComponent -> {
+            // Return text even if empty
+            component.text ?: ""
+        }
+        else -> {
+            // Try to extract via reflection for custom components
+            extractValueViaReflection(component)
+        }
+    }
+}
+
+/**
+ * Extracts the display text from a JComboBox using its renderer.
+ *
+ * Combo boxes often use custom renderers to display human-readable text
+ * for enum values or other objects. This function uses the renderer to
+ * get the actual displayed text rather than the raw object's toString().
+ *
+ * @param comboBox The combo box to extract display text from.
+ * @return The rendered display text, or null if not extractable.
+ */
+@Suppress("UNCHECKED_CAST")
+private fun extractComboBoxDisplayText(comboBox: javax.swing.JComboBox<*>): String? {
+    val selectedItem = comboBox.selectedItem ?: return null
+    val selectedIndex = comboBox.selectedIndex
+
+    // Try to get the display text from the renderer
+    runCatching {
+        val renderer = comboBox.renderer as? javax.swing.ListCellRenderer<Any?>
+        if (renderer != null) {
+            val renderedComponent = renderer.getListCellRendererComponent(
+                javax.swing.JList<Any?>(),
+                selectedItem,
+                selectedIndex,
+                false,
+                false
+            )
+
+            // Extract text from the rendered component
+            val text = extractTextFromRenderedComponent(renderedComponent)
+            if (!text.isNullOrBlank()) {
+                return text
+            }
+        }
+    }
+
+    // Fallback: check if item has a presentable name or display name
+    runCatching {
+        // Try common IntelliJ interfaces for presentable items
+        val presentableTextMethod = selectedItem.javaClass.getMethod("getPresentableText")
+        presentableTextMethod.isAccessible = true
+        val result = presentableTextMethod.invoke(selectedItem)?.toString()
+        if (!result.isNullOrBlank()) return result
+    }
+
+    runCatching {
+        val displayNameMethod = selectedItem.javaClass.getMethod("getDisplayName")
+        displayNameMethod.isAccessible = true
+        val result = displayNameMethod.invoke(selectedItem)?.toString()
+        if (!result.isNullOrBlank()) return result
+    }
+
+    // Final fallback: use toString()
+    return selectedItem.toString()
+}
+
+/**
+ * Extracts text from a rendered component (typically a JLabel or panel with labels).
+ */
+private fun extractTextFromRenderedComponent(component: Component): String? {
+    return when (component) {
+        is javax.swing.JLabel -> component.text?.takeIf { it.isNotBlank() }
+        is com.intellij.ui.SimpleColoredComponent -> {
+            // SimpleColoredComponent is commonly used in IntelliJ renderers
+            // Use getCharSequence(false) to get all text fragments
+            runCatching {
+                component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
+            }.getOrNull()
+        }
+        is Container -> {
+            // Search for a JLabel within the container
+            for (child in component.components) {
+                val text = extractTextFromRenderedComponent(child)
+                if (!text.isNullOrBlank()) return text
+            }
+            null
+        }
+        else -> null
+    }
+}
+
+/**
+ * Attempts to extract a value from a component using reflection.
+ *
+ * Looks for common getter methods like getSelectedItem, getText, getValue.
+ */
+private fun extractValueViaReflection(component: Component): String? {
+    val methodsToTry = listOf("getSelectedItem", "getText", "getValue", "getSelectedValue")
+
+    for (methodName in methodsToTry) {
+        runCatching {
+            val method = component.javaClass.getMethod(methodName)
+            method.isAccessible = true
+            val result = method.invoke(component)
+            result?.toString()?.takeIf { it.isNotBlank() }?.let { return it }
+        }
+    }
+
+    return null
+}
