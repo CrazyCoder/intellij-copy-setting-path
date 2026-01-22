@@ -20,10 +20,11 @@ import javax.swing.SwingUtilities
  * Detects the row at the mouse pointer position in a TreeTable.
  *
  * @param treeTable The TreeTable component.
- * @param e The action event containing mouse information.
+ * @param e The action event containing mouse information (nullable).
  * @return The row index at the mouse position, or -1 if not found.
  */
-fun detectRowFromMousePoint(treeTable: TreeTable, e: AnActionEvent): Int {
+fun detectRowFromMousePoint(treeTable: TreeTable, e: AnActionEvent?): Int {
+    if (e == null) return -1
     val point = getConvertedMousePoint(e, treeTable) ?: return -1
     val rowAtPoint = treeTable.rowAtPoint(point)
     return if (rowAtPoint <= treeTable.rowCount) rowAtPoint else -1
@@ -33,10 +34,11 @@ fun detectRowFromMousePoint(treeTable: TreeTable, e: AnActionEvent): Int {
  * Detects the row at the mouse pointer position in a JTable.
  *
  * @param table The JTable component.
- * @param e The action event containing mouse information.
+ * @param e The action event containing mouse information (nullable).
  * @return The row index at the mouse position, or -1 if not found.
  */
-fun detectRowFromMousePoint(table: JTable, e: AnActionEvent): Int {
+fun detectRowFromMousePoint(table: JTable, e: AnActionEvent?): Int {
+    if (e == null) return -1
     val point = getConvertedMousePoint(e, table) ?: return -1
     val rowAtPoint = table.rowAtPoint(point)
     return if (rowAtPoint in 0 until table.rowCount) rowAtPoint else -1
@@ -46,10 +48,11 @@ fun detectRowFromMousePoint(table: JTable, e: AnActionEvent): Int {
  * Detects the column at the mouse pointer position in a JTable.
  *
  * @param table The JTable component.
- * @param e The action event containing mouse information.
+ * @param e The action event containing mouse information (nullable).
  * @return The column index at the mouse position, or -1 if not found.
  */
-fun detectColumnFromMousePoint(table: JTable, e: AnActionEvent): Int {
+fun detectColumnFromMousePoint(table: JTable, e: AnActionEvent?): Int {
+    if (e == null) return -1
     val point = getConvertedMousePoint(e, table) ?: return -1
     val columnAtPoint = table.columnAtPoint(point)
     return if (columnAtPoint in 0 until table.columnCount) columnAtPoint else -1
@@ -59,10 +62,11 @@ fun detectColumnFromMousePoint(table: JTable, e: AnActionEvent): Int {
  * Detects the list item index at the mouse pointer position in a JList.
  *
  * @param list The JList component.
- * @param e The action event containing mouse information.
+ * @param e The action event containing mouse information (nullable).
  * @return The list index at the mouse position, or -1 if not found.
  */
-fun detectListIndexFromMousePoint(list: JList<*>, e: AnActionEvent): Int {
+fun detectListIndexFromMousePoint(list: JList<*>, e: AnActionEvent?): Int {
+    if (e == null) return -1
     val point = getConvertedMousePoint(e, list) ?: return -1
     val indexAtPoint = list.locationToIndex(point)
     // locationToIndex returns the closest index, so we need to verify the point is actually within the cell
@@ -78,11 +82,12 @@ fun detectListIndexFromMousePoint(list: JList<*>, e: AnActionEvent): Int {
 /**
  * Converts the mouse event coordinates to the destination component's coordinate space.
  *
- * @param event The action event containing the input event.
+ * @param event The action event containing the input event (nullable).
  * @param destination The component to convert coordinates to.
  * @return The converted point, or null if the event is not a mouse event.
  */
-fun getConvertedMousePoint(event: AnActionEvent, destination: Component): Point? {
+fun getConvertedMousePoint(event: AnActionEvent?, destination: Component): Point? {
+    if (event == null) return null
     val mouseEvent = event.inputEvent as? MouseEvent ?: return null
     return SwingUtilities.convertMouseEvent(mouseEvent.component, mouseEvent, destination).point
 }

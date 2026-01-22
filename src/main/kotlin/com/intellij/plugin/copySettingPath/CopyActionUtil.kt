@@ -1,6 +1,8 @@
 package com.intellij.plugin.copySettingPath
 
 import com.intellij.openapi.diagnostic.Logger
+import java.awt.Component
+import java.awt.Container
 
 /**
  * Core utilities and constants for the Copy Setting Path plugin.
@@ -179,4 +181,47 @@ fun trimFinalResult(path: StringBuilder): String {
         .trimEnd { it in PathSeparator.allSeparatorChars }
         .removeHtmlTags()
         .removeAdvancedSettingIds()
+}
+
+// ============================================================================
+// Component Position Functions
+// ============================================================================
+
+/**
+ * Gets the absolute Y coordinate of a component on screen.
+ *
+ * @param component The component to get the Y coordinate for.
+ * @return The absolute Y coordinate on screen.
+ */
+fun getAbsoluteY(component: Component): Int =
+    runCatching { component.locationOnScreen.y }.getOrDefault(component.y)
+
+/**
+ * Gets the absolute X coordinate of a component on screen.
+ *
+ * @param component The component to get the X coordinate for.
+ * @return The absolute X coordinate on screen.
+ */
+fun getAbsoluteX(component: Component): Int =
+    runCatching { component.locationOnScreen.x }.getOrDefault(component.x)
+
+/**
+ * Finds all components of a specific type within a container recursively.
+ *
+ * @param container The container to search in.
+ * @return A sequence of all components of the specified type.
+ */
+inline fun <reified T : Component> findAllComponentsOfType(container: Container): Sequence<T> = sequence {
+    val stack = ArrayDeque<Component>()
+    stack.addAll(container.components)
+
+    while (stack.isNotEmpty()) {
+        val component = stack.removeFirst()
+        if (component is T) {
+            yield(component)
+        }
+        if (component is Container) {
+            stack.addAll(component.components)
+        }
+    }
 }

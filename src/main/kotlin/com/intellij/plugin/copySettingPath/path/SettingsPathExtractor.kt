@@ -1,0 +1,301 @@
+@file:Suppress("UNCHECKED_CAST")
+
+package com.intellij.plugin.copySettingPath.path
+
+import com.intellij.openapi.options.newEditor.SettingsDialog
+import com.intellij.plugin.copySettingPath.*
+import com.intellij.ui.TitledSeparator
+
+import com.intellij.ui.tabs.JBTabs
+import java.awt.Component
+import java.awt.Container
+import java.util.*
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTabbedPane
+import javax.swing.border.TitledBorder
+
+/**
+ * Simplified Settings path extraction matching IntelliJ's CopySettingsPathAction pattern.
+ *
+ * The extraction follows this approach:
+ * 1. Get base path from SettingsEditor.getPathNames()
+ * 2. Walk up hierarchy for tabs and titled borders (within ConfigurableEditor boundary)
+ * 3. Add TitledSeparator if present
+ */
+object SettingsPathExtractor {
+
+    private const val SETTINGS_PREFIX = "Settings"
+
+    /**
+     * Appends the Settings dialog path to the path builder.
+     *
+     * @param src The source component.
+     * @param path StringBuilder to append path segments to.
+     * @param separator The separator to use between path components.
+     */
+    fun appendSettingsPath(src: Component, path: StringBuilder, separator: String) {
+        // 1. Get base path from SettingsEditor via component hierarchy
+        val settingsEditorPath = getPathFromSettingsEditor(src)
+        if (!settingsEditorPath.isNullOrEmpty()) {
+            path.append(SETTINGS_PREFIX)
+            path.append(separator)
+            path.append(settingsEditorPath.joinToString(separator))
+            path.append(separator)
+        } else {
+            // Fall back to dialog-level extraction
+            val dialog = findSettingsDialog(src)
+            if (dialog != null) {
+                val dialogPath = getPathFromSettingsDialog(dialog)
+                appendItem(path, dialogPath, separator)
+            }
+        }
+
+        // 2. Find ConfigurableEditor boundary
+        val configurableEditor = findParentByClassName(src, PathConstants.CONFIGURABLE_EDITOR_CLASS)
+
+        // 3. Collect middle path (tabs, titled borders) within ConfigurableEditor
+        appendMiddlePath(src, configurableEditor, path, separator)
+
+        // 4. Add TitledSeparator if present
+        findPrecedingTitledSeparator(src, configurableEditor)?.let { separatorComponent ->
+            appendItem(path, separatorComponent.text, separator)
+        }
+    }
+
+    /**
+     * Extracts the settings path from the SettingsEditor component hierarchy.
+     *
+     * @param component The source component to start searching from.
+     * @return Collection of path segments, or null if extraction fails.
+     */
+    private fun getPathFromSettingsEditor(component: Component): Collection<String>? {
+        return runCatching {
+            val settingsEditor = findParentByClassName(component, PathConstants.SETTINGS_EDITOR_CLASS)
+            if (settingsEditor == null) {
+                LOG.debug("SettingsEditor not found in component hierarchy")
+                return@runCatching null
+            }
+
+            LOG.debug("Found SettingsEditor: ${settingsEditor.javaClass.name}")
+            invokeGetPathNames(settingsEditor)
+        }.onFailure { e ->
+            LOG.debug("Error getting path from SettingsEditor: ${e.message}")
+        }.getOrNull()
+    }
+
+    /**
+     * Extracts the settings path from a SettingsDialog instance.
+     *
+     * @param settings The SettingsDialog to extract path from.
+     * @return The formatted path string, or null if extraction fails.
+     */
+    private fun getPathFromSettingsDialog(settings: SettingsDialog): String? {
+        return runCatching {
+            val editor = settings.editor
+            val editorClassName = editor.javaClass.name
+            LOG.debug("Editor class: $editorClassName")
+
+            // getPathNames() only exists on SettingsEditor, not on SingleSettingEditor or AbstractEditor
+            if (!editorClassName.contains("SettingsEditor")) {
+                LOG.debug("Editor is not SettingsEditor, falling back to legacy approach")
+                return@runCatching getPathFromSettingsDialogLegacy(settings)
+            }
+
+            val pathNames = invokeGetPathNames(editor)
+            LOG.debug("pathNames result: $pathNames")
+
+            if (!pathNames.isNullOrEmpty()) {
+                buildPath(SETTINGS_PREFIX, pathNames)
+            } else {
+                SETTINGS_PREFIX
+            }
+        }.onFailure { e ->
+            when (e) {
+                is NoSuchMethodException -> LOG.debug("getPathNames method not found: ${e.message}")
+                else -> LOG.debug("Exception when getting path from settings dialog: ${e.message}")
+            }
+        }.getOrNull() ?: getPathFromSettingsDialogLegacy(settings)
+    }
+
+    /**
+     * Builds a path string from a prefix and collection of segments.
+     */
+    private fun buildPath(prefix: String, segments: Collection<String>): String {
+        return buildString {
+            append(prefix)
+            append(PathConstants.SEPARATOR)
+            append(segments.joinToString(PathConstants.SEPARATOR))
+        }
+    }
+
+    /**
+     * Legacy approach to extract path from SettingsDialog using deep reflection.
+     */
+    private fun getPathFromSettingsDialogLegacy(settings: SettingsDialog): String? {
+        return runCatching {
+            val editorField =
+                findInheritedField(settings.javaClass, PathConstants.FIELD_MY_EDITOR, PathConstants.ABSTRACT_EDITOR_CLASS)
+                    ?: findInheritedField(settings.javaClass, PathConstants.FIELD_EDITOR, PathConstants.ABSTRACT_EDITOR_CLASS)
+
+            if (editorField == null) {
+                LOG.debug("Could not find editor field in SettingsDialog")
+                return@runCatching null
+            }
+
+            editorField.isAccessible = true
+            val settingsEditorInstance = editorField.get(settings) as? JPanel ?: return@runCatching null
+
+            val bannerField = findInheritedField(
+                settingsEditorInstance.javaClass,
+                PathConstants.FIELD_MY_BANNER,
+                PathConstants.BANNER_CLASS
+            ) ?: findInheritedField(
+                settingsEditorInstance.javaClass,
+                PathConstants.FIELD_MY_BANNER,
+                PathConstants.CONFIGURABLE_EDITOR_BANNER_CLASS
+            )
+
+            if (bannerField == null) {
+                LOG.debug("Could not find banner field in editor")
+                return@runCatching null
+            }
+
+            bannerField.isAccessible = true
+            val bannerInstance = bannerField.get(settingsEditorInstance) ?: return@runCatching null
+
+            val breadcrumbsField = findInheritedField(
+                bannerInstance.javaClass,
+                PathConstants.FIELD_MY_BREADCRUMBS,
+                PathConstants.BREADCRUMBS_CLASS
+            )
+            if (breadcrumbsField == null) {
+                LOG.debug("Could not find myBreadcrumbs field in banner")
+                return@runCatching null
+            }
+
+            breadcrumbsField.isAccessible = true
+            val breadcrumbsInstance = breadcrumbsField.get(bannerInstance) ?: return@runCatching null
+
+            val viewsField = breadcrumbsField.type.getDeclaredField(PathConstants.FIELD_VIEWS)
+            viewsField.isAccessible = true
+            val views = viewsField.get(breadcrumbsInstance) as? ArrayList<*> ?: return@runCatching SETTINGS_PREFIX
+
+            buildString {
+                append(SETTINGS_PREFIX)
+                views.forEachIndexed { index, crumb ->
+                    crumb ?: return@forEachIndexed
+                    val textField = crumb.javaClass.getDeclaredField(PathConstants.FIELD_TEXT)
+                    textField.isAccessible = true
+                    textField.get(crumb)?.let { value ->
+                        append(if (index > 0) PathConstants.SEPARATOR else PathConstants.SEPARATOR)
+                        append(value)
+                    }
+                }
+            }
+        }.onFailure { e ->
+            LOG.debug("Exception when appending path (legacy): ${e.message}")
+        }.getOrNull()
+    }
+
+    /**
+     * Appends middle path segments (tabs, titled borders) from the component hierarchy.
+     *
+     * This matches IntelliJ's CopySettingsPathAction approach:
+     * - Walk up from component to boundary
+     * - Collect JBTabs selected tab names
+     * - Collect JTabbedPane selected tab titles
+     * - Collect TitledBorder titles
+     *
+     * @param src The source component.
+     * @param boundary The boundary component (ConfigurableEditor) to stop at.
+     * @param path StringBuilder to append path segments to.
+     * @param separator The separator to use between path components.
+     */
+    fun appendMiddlePath(src: Component, boundary: Component?, path: StringBuilder, separator: String) {
+        val items = ArrayDeque<String>()
+        var component: Component? = src
+
+        while (component != null && component !== boundary) {
+            collectTabName(component, items)
+            collectTitledBorder(component, items)
+            component = component.parent
+        }
+
+        // Add collected items in correct order (from root to leaf)
+        for (item in items) {
+            appendItem(path, item, separator)
+        }
+    }
+
+    /**
+     * Finds the SettingsDialog for the given component.
+     */
+    private fun findSettingsDialog(component: Component): SettingsDialog? {
+        return com.intellij.openapi.ui.DialogWrapper.findInstance(component) as? SettingsDialog
+    }
+
+    /**
+     * Collects tab name from JBTabs or JTabbedPane component.
+     */
+    private fun collectTabName(component: Component, items: ArrayDeque<String>) {
+        when (component) {
+            is JBTabs -> {
+                component.selectedInfo?.text?.takeIf { it.isNotEmpty() }?.let {
+                    items.addFirst(it)
+                }
+            }
+            is JTabbedPane -> {
+                val selectedIndex = component.selectedIndex
+                if (selectedIndex >= 0 && selectedIndex < component.tabCount) {
+                    component.getTitleAt(selectedIndex)?.takeIf { it.isNotEmpty() }?.let {
+                        items.addFirst(it)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Collects titled border text from a JComponent.
+     */
+    private fun collectTitledBorder(component: Component, items: ArrayDeque<String>) {
+        if (component is JComponent) {
+            val border = component.border
+            // TitledBorder includes IdeaTitledBorder (which extends TitledBorder)
+            if (border is TitledBorder) {
+                border.title?.takeIf { it.isNotEmpty() }?.let {
+                    items.addFirst(it)
+                }
+            }
+        }
+    }
+
+    /**
+     * Finds the TitledSeparator that visually precedes the given component.
+     *
+     * Simplified version that assumes single-column layout (covers 95%+ of cases).
+     *
+     * @param component The component to find the preceding separator for.
+     * @param boundary The boundary component to limit the search.
+     * @return The TitledSeparator that precedes the component, or null if not found.
+     */
+    private fun findPrecedingTitledSeparator(component: Component, boundary: Component?): TitledSeparator? {
+        val componentY = getAbsoluteY(component)
+        val searchContainer = (boundary as? Container) ?: component.parent ?: return null
+
+        var bestSeparator: TitledSeparator? = null
+        var bestY = Int.MIN_VALUE
+
+        findAllComponentsOfType<TitledSeparator>(searchContainer).forEach { separator ->
+            if (!separator.isShowing) return@forEach
+            val sepY = getAbsoluteY(separator)
+            if (sepY < componentY && sepY > bestY) {
+                bestSeparator = separator
+                bestY = sepY
+            }
+        }
+
+        return bestSeparator
+    }
+}
