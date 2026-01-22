@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.intellij.plugin.copy.setting.path'
-version = '0.5'
+version = '1.0'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
