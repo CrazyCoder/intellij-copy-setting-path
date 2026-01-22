@@ -56,7 +56,8 @@ fun findParentByClassName(component: java.awt.Component, className: String): jav
 @Suppress("UNCHECKED_CAST")
 fun invokeGetPathNames(target: Any): Collection<String>? {
     return runCatching {
-        val method = target.javaClass.getMethod(PathConstants.METHOD_GET_PATH_NAMES)
+        val method = target.javaClass.getDeclaredMethod(PathConstants.METHOD_GET_PATH_NAMES)
+        method.isAccessible = true
         method.invoke(target) as? Collection<String>
     }.onFailure { e ->
         LOG.debug("Failed to invoke getPathNames: ${e.message}")
