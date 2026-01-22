@@ -393,7 +393,8 @@ fun getMiddlePath(src: Component, path: StringBuilder, separator: String = PathC
 
     // Add titled separator group name if present (e.g., "Java" section in Auto Import settings)
     // This is handled separately as it requires spatial analysis, not just hierarchy traversal
-    findPrecedingTitledSeparator(src)?.let { titledSeparator ->
+    // Pass the ConfigurableEditor boundary to limit the search scope
+    findPrecedingTitledSeparator(src, configurableEditor)?.let { titledSeparator ->
         appendItem(path, titledSeparator.text, separator)
     }
 }
@@ -402,42 +403,48 @@ fun getMiddlePath(src: Component, path: StringBuilder, separator: String = PathC
  * Finds the TitledSeparator that visually precedes the given component.
  *
  * TitledSeparators are used in Settings panels to group related options
- * (e.g., "Java" section in Auto Import settings). This function traverses
- * the component hierarchy to find the separator that appears before the
- * target component in the visual layout.
+ * (e.g., "Java" section in Auto Import settings). This function searches
+ * only within the boundary component to find the separator that appears
+ * before the target component in the visual layout.
+ *
+ * Important: The search is limited to within the ConfigurableEditor boundary to avoid
+ * finding TitledSeparators from other configurables that may be loaded in memory but
+ * are not currently visible. We also check that the TitledSeparator is actually visible
+ * since ConfigurableCardPanel keeps multiple configurables' panels in memory using a
+ * card layout, but only one is visible at a time.
  *
  * @param component The component to find the preceding separator for.
+ * @param boundary The boundary component (typically ConfigurableEditor) to limit the search.
+ *                 If null, searches within the component's immediate parent only.
  * @return The TitledSeparator that precedes the component, or null if not found.
  */
-private fun findPrecedingTitledSeparator(component: Component): TitledSeparator? {
+private fun findPrecedingTitledSeparator(component: Component, boundary: Component?): TitledSeparator? {
     // Get the Y coordinate of the component to compare positions
     val componentY = getAbsoluteY(component)
 
-    // Traverse up through parent containers looking for TitledSeparators
-    var current: Container? = component.parent
+    // Determine the search container - either the boundary or the component's parent
+    val searchContainer = (boundary as? Container) ?: component.parent ?: return null
+
+    // Search only within the boundary for TitledSeparators
+    // This prevents finding separators from other configurables that may be in memory
+    val separators = findAllTitledSeparators(searchContainer)
+
     var bestSeparator: TitledSeparator? = null
     var bestSeparatorY = Int.MIN_VALUE
 
-    while (current != null) {
-        // Search this container and all its descendants for TitledSeparators
-        val separators = findAllTitledSeparators(current)
+    for (separator in separators) {
+        // Skip separators that are not visible or not showing on screen
+        // ConfigurableCardPanel keeps multiple panels in memory using card layout,
+        // but only one is visible at a time
+        if (!separator.isShowing) continue
 
-        for (separator in separators) {
-            val separatorY = getAbsoluteY(separator)
-            // The separator must be above (or at same level as) the component
-            // and closer than any previously found separator
-            if (separatorY <= componentY && separatorY > bestSeparatorY) {
-                bestSeparator = separator
-                bestSeparatorY = separatorY
-            }
+        val separatorY = getAbsoluteY(separator)
+        // The separator must be above (or at same level as) the component
+        // and closer than any previously found separator
+        if (separatorY <= componentY && separatorY > bestSeparatorY) {
+            bestSeparator = separator
+            bestSeparatorY = separatorY
         }
-
-        // If we found a separator at this level, use it
-        if (bestSeparator != null) {
-            return bestSeparator
-        }
-
-        current = current.parent
     }
 
     return bestSeparator
