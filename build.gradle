@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity('2025.1.2')  // Use 2025.1.2 as 2025.3 is not yet released
+        intellijIdeaCommunity('2025.1.2')
 
         pluginVerifier()
         zipSigner()
@@ -35,7 +35,7 @@ kotlin {
 
 intellijPlatform {
     pluginConfiguration {
-        name = 'CopySettingPath'
+        name = 'Copy Setting Path'
 
         ideaVersion {
             sinceBuild = '251'
@@ -43,11 +43,15 @@ intellijPlatform {
         }
 
         changeNotes = """
-            Adds 'Copy Setting Path' action to copy full path to an option from IDE dialogs.<br>
+            Major rewrite of the ‘Copy Option Path’ plugin, adding new features and ensuring compatibility with recent IDE versions.<br>
         """
     }
 
     publishing {
         // Configure if you want to publish to JetBrains Marketplace
     }
+}
+
+tasks.named("buildSearchableOptions") {
+    enabled = false
 }
