@@ -22,7 +22,7 @@ navigation path to any UI setting in IDE dialogs (such as Settings, Project Stru
 
 ### Manual Installation
 
-1. Download the plugin ZIP from [Releases](https://github.com/CrazyCoder/intellij-copy-options-path/releases)
+1. Download the plugin ZIP from [Releases](https://github.com/CrazyCoder/intellij-copy-setting-path/releases)
 2. Go to **Settings | Plugins | ⚙️ | Install Plugin from Disk...**
 3. Select the downloaded ZIP file
 
