@@ -24,6 +24,7 @@ import java.lang.reflect.Field
 import javax.swing.DefaultListModel
 import javax.swing.tree.DefaultMutableTreeNode
 import java.util.ArrayDeque
+import javax.swing.AbstractButton
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -392,18 +393,19 @@ fun extractListItemDisplayText(list: JList<*>, item: Any?, index: Int): String? 
 }
 
 /**
- * Extracts text from a rendered list component (typically a JLabel or SimpleColoredComponent).
+ * Extracts text from a rendered list component (typically a JLabel, AbstractButton, or SimpleColoredComponent).
  */
 private fun extractTextFromListRenderedComponent(component: Component): String? {
     return when (component) {
         is JLabel -> component.text?.removeHtmlTagsInternal()?.takeIf { it.isNotBlank() }
+        is AbstractButton -> component.text?.removeHtmlTagsInternal()?.takeIf { it.isNotBlank() }
         is SimpleColoredComponent -> {
             runCatching {
                 component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
             }.getOrNull()
         }
         is Container -> {
-            // Search for a JLabel or SimpleColoredComponent within the container
+            // Search for a JLabel, AbstractButton, or SimpleColoredComponent within the container
             for (child in component.components) {
                 val text = extractTextFromListRenderedComponent(child)
                 if (!text.isNullOrBlank()) return text
@@ -500,6 +502,7 @@ private fun extractDisplayNameFromObject(obj: Any): String? {
  * 
  * This handles common IntelliJ renderer component types:
  * - JLabel: direct text extraction
+ * - AbstractButton: checkbox, radio button, and other button text
  * - SimpleColoredComponent: uses getCharSequence() for multi-fragment text
  * - ColoredTableCellRenderer: similar to SimpleColoredComponent
  * - Container: recursively searches for text-containing children
@@ -507,6 +510,7 @@ private fun extractDisplayNameFromObject(obj: Any): String? {
 private fun extractTextFromRenderedComponentGeneric(component: Component): String? {
     return when (component) {
         is JLabel -> component.text?.removeHtmlTagsInternal()?.takeIf { it.isNotBlank() }
+        is AbstractButton -> component.text?.removeHtmlTagsInternal()?.takeIf { it.isNotBlank() }
         is SimpleColoredComponent -> {
             runCatching {
                 component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
@@ -1407,11 +1411,12 @@ private fun extractComboBoxDisplayText(comboBox: JComboBox<*>): String? {
 }
 
 /**
- * Extracts text from a rendered component (typically a JLabel or panel with labels).
+ * Extracts text from a rendered component (typically a JLabel, AbstractButton, or panel with labels).
  */
 private fun extractTextFromRenderedComponent(component: Component): String? {
     return when (component) {
         is JLabel -> component.text?.takeIf { it.isNotBlank() }
+        is AbstractButton -> component.text?.takeIf { it.isNotBlank() }
         is SimpleColoredComponent -> {
             // SimpleColoredComponent is commonly used in IntelliJ renderers
             // Use getCharSequence(false) to get all text fragments
@@ -1420,7 +1425,7 @@ private fun extractTextFromRenderedComponent(component: Component): String? {
             }.getOrNull()
         }
         is Container -> {
-            // Search for a JLabel within the container
+            // Search for a JLabel or AbstractButton within the container
             for (child in component.components) {
                 val text = extractTextFromRenderedComponent(child)
                 if (!text.isNullOrBlank()) return text
