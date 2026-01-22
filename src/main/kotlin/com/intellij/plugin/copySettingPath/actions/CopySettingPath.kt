@@ -20,6 +20,7 @@ import com.intellij.plugin.copySettingPath.detectRowFromMousePoint
 import com.intellij.plugin.copySettingPath.detectListIndexFromMousePoint
 import com.intellij.plugin.copySettingPath.extractComponentValue
 import com.intellij.plugin.copySettingPath.extractListItemDisplayText
+import com.intellij.plugin.copySettingPath.extractTableCellDisplayText
 import com.intellij.plugin.copySettingPath.findAdjacentComponent
 import com.intellij.plugin.copySettingPath.getConvertedMousePoint
 import com.intellij.plugin.copySettingPath.getMiddlePath
@@ -207,8 +208,10 @@ class CopySettingPath : DumbAwareAction() {
             val selectedColumn = detectColumnFromMousePoint(table, e).takeIf { it != -1 }
                 ?: table.selectedColumn.takeIf { it != -1 }
                 ?: 0
-            val value = table.getValueAt(selectedRow, selectedColumn)
-            value?.toString()?.takeIf { it.isNotEmpty() }?.let { cellValue ->
+            // Use the renderer to extract the displayed text, not the raw model value
+            // This handles custom renderers that display meaningful text for complex objects
+            val displayText = extractTableCellDisplayText(table, selectedRow, selectedColumn)
+            displayText?.takeIf { it.isNotEmpty() }?.let { cellValue ->
                 appendItem(path, cellValue, separator)
             }
         }

@@ -420,6 +420,119 @@ private fun extractTextFromListRenderedComponent(component: Component): String? 
 private fun String.removeHtmlTagsInternal(): String = replace(Regex("<[^>]*>"), "")
 
 /**
+ * Extracts the display text from a JTable cell using its renderer.
+ *
+ * Tables often use custom cell renderers to display human-readable text for objects.
+ * This is particularly common in IntelliJ settings panels where cells may contain
+ * objects like FileColorConfiguration, Color, etc. that have meaningful visual
+ * representations but unhelpful toString() output.
+ *
+ * This function uses the table's cell renderer to get the actual displayed text
+ * rather than the raw model value's toString().
+ *
+ * @param table The JTable containing the cell.
+ * @param row The row index of the cell.
+ * @param column The column index of the cell.
+ * @return The rendered display text, or null if not extractable.
+ */
+fun extractTableCellDisplayText(table: JTable, row: Int, column: Int): String? {
+    // Get the model value first - we'll use this as a fallback
+    val modelValue = runCatching { table.getValueAt(row, column) }.getOrNull()
+    
+    // Try to get the display text from the renderer
+    runCatching {
+        val renderer = table.getCellRenderer(row, column)
+        val renderedComponent = table.prepareRenderer(renderer, row, column)
+        
+        // Extract text from the rendered component
+        val text = extractTextFromRenderedComponentGeneric(renderedComponent)
+        if (!text.isNullOrBlank()) {
+            return text
+        }
+    }.onFailure { e ->
+        LOG.debug("Error extracting table cell display text via renderer: ${e.message}")
+    }
+    
+    // Fallback: try common interfaces for display name on the model value
+    if (modelValue != null) {
+        extractDisplayNameFromObject(modelValue)?.let { return it }
+    }
+    
+    // Final fallback: use model value's toString() if it doesn't look like an object reference
+    val stringValue = modelValue?.toString()
+    return if (stringValue != null && !looksLikeObjectReference(stringValue)) {
+        stringValue.takeIf { it.isNotBlank() }
+    } else {
+        null
+    }
+}
+
+/**
+ * Checks if a string looks like a default toString() object reference.
+ * 
+ * Default toString() typically produces output like "ClassName@hexAddress"
+ * which is not useful for display purposes.
+ */
+private fun looksLikeObjectReference(str: String): Boolean {
+    // Pattern: ClassName@hexAddress (e.g., "FileColorConfiguration@e008e744")
+    return str.matches(Regex(".*@[0-9a-fA-F]+$"))
+}
+
+/**
+ * Extracts a display name from an object using common getter methods.
+ */
+private fun extractDisplayNameFromObject(obj: Any): String? {
+    val methodsToTry = listOf("getDisplayName", "getName", "getText", "getPresentableText")
+    
+    for (methodName in methodsToTry) {
+        runCatching {
+            val method = obj.javaClass.getMethod(methodName)
+            method.isAccessible = true
+            val result = method.invoke(obj)?.toString()
+            if (!result.isNullOrBlank()) return result
+        }
+    }
+    return null
+}
+
+/**
+ * Extracts text from a rendered component (generic version for tables and other components).
+ * 
+ * This handles common IntelliJ renderer component types:
+ * - JLabel: direct text extraction
+ * - SimpleColoredComponent: uses getCharSequence() for multi-fragment text
+ * - ColoredTableCellRenderer: similar to SimpleColoredComponent
+ * - Container: recursively searches for text-containing children
+ */
+private fun extractTextFromRenderedComponentGeneric(component: Component): String? {
+    return when (component) {
+        is JLabel -> component.text?.removeHtmlTagsInternal()?.takeIf { it.isNotBlank() }
+        is SimpleColoredComponent -> {
+            runCatching {
+                component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
+            }.getOrNull()
+        }
+        is Container -> {
+            // First check if the container itself is a SimpleColoredComponent subclass
+            // (like ColoredTableCellRenderer which extends SimpleColoredComponent)
+            if (component is SimpleColoredComponent) {
+                runCatching {
+                    component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
+                }.getOrNull()?.let { return it }
+            }
+            
+            // Search for text-containing children
+            for (child in component.components) {
+                val text = extractTextFromRenderedComponentGeneric(child)
+                if (!text.isNullOrBlank()) return text
+            }
+            null
+        }
+        else -> null
+    }
+}
+
+/**
  * Converts the mouse event coordinates to the destination component's coordinate space.
  *
  * @param event The action event containing the input event.
