@@ -30,9 +30,15 @@
       <li><b>Path separator style</b>: Choose between pipe (<code>|</code>), arrow (<code>→</code>) and other styles</li>
       <li><b>Mouse click interception</b>: Enable to copy paths without activating UI components, and to enable main menu path copying</li>
     </ul>
+
+    <h3>Important Notice</h3>
+    <p>This plugin is <b>incompatible</b> with the legacy <b>Copy Option Path</b> plugin. If you have the old plugin installed, please <b>uninstall it</b> before using this plugin. The IDE will prevent both plugins from running simultaneously.</p>
     ]]></description>
 
   <idea-version since-build="251"/>
+
+  <!-- Declare incompatibility with the legacy "Copy Option Path" plugin -->
+  <incompatible-with>com.intellij.plugin.copy.options</incompatible-with>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.lang</depends>

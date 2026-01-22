@@ -57,6 +57,10 @@ The menu path is copied without executing the menu action.
 - **Minimum IDE Version:** 2025.1+
 - **Supported IDEs:** All JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, GoLand, etc.)
 
+> **Note:** This plugin is incompatible with the legacy **Copy Option Path** plugin (`com.intellij.plugin.copy.options`).
+> If you have the old plugin installed, please **uninstall it** before installing this plugin.
+> The IDE will automatically prevent both plugins from running simultaneously.
+
 ## Configuration
 
 ### Advanced Settings
