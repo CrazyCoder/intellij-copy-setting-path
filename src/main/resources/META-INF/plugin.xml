@@ -4,11 +4,12 @@
   <vendor email="sbaranov@gmail.com" url="https://github.com/CrazyCoder">Serge Baranov</vendor>
 
   <description><![CDATA[
-    <p>Adds <b>Copy Setting Path</b> action which copies the full navigation path to any UI setting in IDE dialogs to the clipboard.</p>
+    <p>Adds <b>Copy Setting Path</b> action which copies the full navigation path to any UI setting in IDE dialogs or main menu items to the clipboard.</p>
 
     <h3>Features</h3>
     <ul>
       <li>Copy full path to any option in Settings dialogs (e.g., <code>Settings | Editor | Code Style | Java</code>)</li>
+      <li>Copy full path from main menu items (e.g., <code>File | Manage IDE Settings | Export Settings</code>)</li>
       <li>Works with Project Structure dialog in IntelliJ IDEA and EDU products</li>
       <li>Supports navigation via <b>Ctrl+Click</b> (Cmd+Click on macOS)</li>
       <li>Handles tree structures, tabs, titled panels, buttons, labels, and tables</li>
@@ -18,9 +19,8 @@
 
     <h3>Usage</h3>
     <ul>
-      <li>Open any IDE dialog (Settings, Project Structure, etc.)</li>
-      <li>Right-click on any UI element and select <b>Copy Setting Path</b> from the context menu</li>
-      <li>Or use <b>Ctrl+Click</b> (Cmd+Click on macOS) on the element</li>
+      <li><b>Settings/Dialogs:</b> Right-click on any UI element and select <b>Copy Setting Path</b>, or use <b>Ctrl+Click</b> (Cmd+Click on macOS)</li>
+      <li><b>Main Menu:</b> Enable mouse interception in Advanced Settings, then <b>Ctrl+Click</b> on any menu item to copy its path (the menu action will not execute)</li>
       <li>The full path is copied to the clipboard</li>
     </ul>
 
@@ -28,7 +28,7 @@
     <p>Go to <b>Settings | Advanced Settings | Copy Setting Path</b> to configure:</p>
     <ul>
       <li><b>Path separator style</b>: Choose between pipe (<code>|</code>), arrow (<code>→</code>) and other styles</li>
-      <li><b>Mouse click interception</b>: Enable/disable Ctrl+Click behavior</li>
+      <li><b>Mouse click interception</b>: Enable to copy paths without activating UI components, and to enable main menu path copying</li>
     </ul>
     ]]></description>
 

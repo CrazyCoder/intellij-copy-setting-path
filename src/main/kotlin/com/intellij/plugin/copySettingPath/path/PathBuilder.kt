@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.plugin.copySettingPath.*
+import com.intellij.plugin.copySettingPath.appendItem
 import java.awt.Component
 
 /**

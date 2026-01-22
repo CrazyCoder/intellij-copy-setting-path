@@ -135,8 +135,16 @@ object SettingsPathExtractor {
     private fun getPathFromSettingsDialogLegacy(settings: SettingsDialog): String? {
         return runCatching {
             val editorField =
-                findInheritedField(settings.javaClass, PathConstants.FIELD_MY_EDITOR, PathConstants.ABSTRACT_EDITOR_CLASS)
-                    ?: findInheritedField(settings.javaClass, PathConstants.FIELD_EDITOR, PathConstants.ABSTRACT_EDITOR_CLASS)
+                findInheritedField(
+                    settings.javaClass,
+                    PathConstants.FIELD_MY_EDITOR,
+                    PathConstants.ABSTRACT_EDITOR_CLASS
+                )
+                    ?: findInheritedField(
+                        settings.javaClass,
+                        PathConstants.FIELD_EDITOR,
+                        PathConstants.ABSTRACT_EDITOR_CLASS
+                    )
 
             if (editorField == null) {
                 LOG.debug("Could not find editor field in SettingsDialog")
@@ -245,6 +253,7 @@ object SettingsPathExtractor {
                     items.addFirst(it)
                 }
             }
+
             is JTabbedPane -> {
                 val selectedIndex = component.selectedIndex
                 if (selectedIndex >= 0 && selectedIndex < component.tabCount) {

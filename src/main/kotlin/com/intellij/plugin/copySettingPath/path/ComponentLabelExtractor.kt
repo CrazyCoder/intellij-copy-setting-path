@@ -228,6 +228,7 @@ object ComponentLabelExtractor {
                     component.text
                 }
             }
+
             is JRadioButton -> component.text?.takeIf { component.isSelected }
             is JSpinner -> component.value?.toString()
             is JSlider -> component.value.toString()
@@ -278,6 +279,7 @@ object ComponentLabelExtractor {
         return when (component) {
             is JComboBox<*>, is JTextField, is JCheckBox,
             is JRadioButton, is JSpinner, is JSlider -> true
+
             is JButton -> component.javaClass.simpleName.contains("ComboBoxButton", ignoreCase = true)
             else -> {
                 val className = component.javaClass.simpleName
@@ -351,6 +353,7 @@ object ComponentLabelExtractor {
                     component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
                 }.getOrNull()
             }
+
             is Container -> {
                 for (child in component.components) {
                     val text = extractComboBoxRenderedText(child)
@@ -358,6 +361,7 @@ object ComponentLabelExtractor {
                 }
                 null
             }
+
             else -> null
         }
     }

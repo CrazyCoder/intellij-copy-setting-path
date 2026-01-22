@@ -6,6 +6,7 @@ navigation path to any UI setting in IDE dialogs (such as Settings, Project Stru
 ## Features
 
 - Copy full path to any option in Settings dialogs (e.g., `Settings | Editor | Code Style | Java`)
+- Copy full path from main menu items (e.g., `File | Manage IDE Settings | Export Settings`)
 - Works with Project Structure dialog in IntelliJ IDEA
 - Supports copying via **Ctrl+Click** (or **Cmd+Click** on macOS)
 - Handles tree structures, tabs, titled panels, buttons, and labels
@@ -41,13 +42,24 @@ full path to the clipboard.
 
 ### Example Output
 
+**Settings Dialog:**
 When you Ctrl+Click on the "Insert imports on paste" dropdown in the Java section of Auto Import settings:
 
 ```
 Settings | Editor | General | Auto Import | Java | Insert imports on paste: Ask
 ```
 
-The plugin automatically detects when a label ends with ":" and appends the current value of the adjacent component (combo box, text field, etc.).
+The plugin automatically detects when a label ends with ":" and appends the current value of the adjacent component (
+combo box, text field, etc.).
+
+**Main Menu:**
+When you Ctrl+Click on a menu item (requires mouse interception enabled):
+
+```
+File | Manage IDE Settings | Export Settings
+```
+
+The menu path is copied without executing the menu action.
 
 ## Compatibility
 
@@ -60,10 +72,10 @@ The plugin automatically detects when a label ends with ":" and appends the curr
 
 The plugin provides settings in **Settings | Advanced Settings** under the **Copy Setting Path** group:
 
-| Setting                                           | Default  | Description                                                                                                                                            |
-|---------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Setting                                            | Default  | Description                                                                                                                                             |
+|----------------------------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Intercept Ctrl/Cmd+Click for Copy Setting Path** | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the setting path **without activating UI components** like checkboxes or buttons. |
-| **Path separator style**                          | Pipe     | Choose the separator character used between path components in the copied setting path.                                                                 |
+| **Path separator style**                           | Pipe     | Choose the separator character used between path components in the copied setting path.                                                                 |
 
 #### Path Separator Styles
 
@@ -84,6 +96,7 @@ underlying UI element. This is useful when:
 
 - You frequently Ctrl+Click on checkboxes and don't want them to toggle
 - You want to copy paths from buttons without activating them
+- **You want to copy main menu paths** — Menu path copying only works when interception is enabled
 
 #### When to Keep Mouse Interception Disabled (Default)
 
@@ -96,6 +109,10 @@ Keep the default (disabled) if:
 ## Recent Fixes
 
 This fork includes important fixes for compatibility with modern IDE versions:
+
+- **Main menu path copying** — When mouse interception is enabled, you can now Ctrl+Click (Cmd+Click on macOS) on any
+  main menu item to copy its full path to the clipboard. For example, clicking on "Export Settings" in the File menu
+  copies `File | Manage IDE Settings | Export Settings`. The menu action is not executed, only the path is copied.
 
 - **Adjacent component value detection** — When clicking on a label that ends with ":" (colon), the plugin now
   automatically finds the adjacent value component (combo box, text field, spinner, etc.) and appends its current value

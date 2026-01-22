@@ -147,6 +147,7 @@ object TreeTablePathExtractor {
                 // Could be an action ID - try to resolve it to a display name
                 resolveActionDisplayName(userObject) ?: userObject
             }
+
             else -> {
                 extractDisplayNameViaReflection(userObject) ?: userObject.toString().takeIf { it.isNotEmpty() }
             }
@@ -242,6 +243,7 @@ object TreeTablePathExtractor {
                     component.getCharSequence(false).toString().takeIf { it.isNotBlank() }
                 }.getOrNull()
             }
+
             is Container -> {
                 for (child in component.components) {
                     val text = extractTextFromRenderedComponent(child)
@@ -249,6 +251,7 @@ object TreeTablePathExtractor {
                 }
                 null
             }
+
             else -> null
         }
     }
