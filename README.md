@@ -72,10 +72,11 @@ The menu path is copied without executing the menu action.
 
 The plugin provides settings in **Settings | Advanced Settings** under the **Copy Setting Path** group:
 
-| Setting                                            | Default  | Description                                                                                                                                             |
-|----------------------------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Intercept Ctrl/Cmd+Click for Copy Setting Path** | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the setting path **without activating UI components** like checkboxes or buttons. |
-| **Path separator style**                           | Pipe     | Choose the separator character used between path components in the copied setting path.                                                                 |
+| Setting                                                 | Default  | Description                                                                                                                                             |
+|---------------------------------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Intercept Ctrl/Cmd+Click for Copy Setting Path**      | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the setting path **without activating UI components** like checkboxes or buttons. |
+| **Include adjacent value for labels ending with colon** | Enabled  | When enabled, labels ending with `:` will include the value of the adjacent component (combo box, text field, etc.) in the copied path.                 |
+| **Path separator style**                                | Pipe     | Choose the separator character used between path components in the copied setting path.                                                                 |
 
 #### Path Separator Styles
 
