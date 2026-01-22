@@ -1,4 +1,4 @@
-package com.intellij.plugin.CopySettingPath.actions
+package com.intellij.plugin.copySettingPath.actions
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -10,7 +10,20 @@ import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.plugin.CopySettingPath.*
+import com.intellij.plugin.copySettingPath.PathSeparator
+import com.intellij.plugin.copySettingPath.appendItem
+import com.intellij.plugin.copySettingPath.appendPathFromProjectStructureDialog
+import com.intellij.plugin.copySettingPath.appendSrcText
+import com.intellij.plugin.copySettingPath.appendTreePath
+import com.intellij.plugin.copySettingPath.detectColumnFromMousePoint
+import com.intellij.plugin.copySettingPath.detectRowFromMousePoint
+import com.intellij.plugin.copySettingPath.extractComponentValue
+import com.intellij.plugin.copySettingPath.findAdjacentComponent
+import com.intellij.plugin.copySettingPath.getConvertedMousePoint
+import com.intellij.plugin.copySettingPath.getMiddlePath
+import com.intellij.plugin.copySettingPath.getPathFromSettingsDialog
+import com.intellij.plugin.copySettingPath.getPathFromSettingsEditor
+import com.intellij.plugin.copySettingPath.trimFinalResult
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.TextTransferable
@@ -47,7 +60,7 @@ class CopySettingPath : DumbAwareAction() {
         val path = buildSettingPath(src, e) ?: return
 
         val result = trimFinalResult(path)
-        LOG.debug("Selected path: $result")
+        com.intellij.plugin.copySettingPath.LOG.debug("Selected path: $result")
         e.inputEvent?.consume()
         CopyPasteManager.getInstance().setContents(TextTransferable(result, result))
     }
@@ -200,13 +213,15 @@ class CopySettingPath : DumbAwareAction() {
         // Check if the text ends with ":" - indicates an adjacent value component
         if (text.endsWith(":")) {
             appendSrcText(path, text)
-            // Try to find and append the adjacent component's value
-            findAdjacentComponent(src)?.let { adjacentComponent ->
-                extractComponentValue(adjacentComponent)?.let { value ->
-                    // Only append if there's actually a non-empty value
-                    if (value.isNotBlank()) {
-                        path.append(" ")
-                        path.append(value)
+            // Try to find and append the adjacent component's value (if enabled)
+            if (isAdjacentValueIncluded()) {
+                findAdjacentComponent(src)?.let { adjacentComponent ->
+                    extractComponentValue(adjacentComponent)?.let { value ->
+                        // Only append if there's actually a non-empty value
+                        if (value.isNotBlank()) {
+                            path.append(" ")
+                            path.append(value)
+                        }
                     }
                 }
             }
@@ -225,6 +240,9 @@ class CopySettingPath : DumbAwareAction() {
         /** Advanced setting ID for path separator configuration. */
         private const val PATH_SEPARATOR_SETTING_ID = "copy.setting.path.separator"
 
+        /** Advanced setting ID for including adjacent value after colon labels. */
+        private const val INCLUDE_ADJACENT_VALUE_SETTING_ID = "copy.setting.path.include.adjacent.value"
+
         /** Prefix for Settings dialog paths. */
         private const val SETTINGS_PREFIX = "Settings"
 
@@ -239,5 +257,11 @@ class CopySettingPath : DumbAwareAction() {
          */
         fun getPathSeparator(): String =
             AdvancedSettings.getEnum(PATH_SEPARATOR_SETTING_ID, PathSeparator::class.java).separator
+
+        /**
+         * Returns whether adjacent value should be included for labels ending with colon.
+         */
+        private fun isAdjacentValueIncluded(): Boolean =
+            AdvancedSettings.getBoolean(INCLUDE_ADJACENT_VALUE_SETTING_ID)
     }
 }

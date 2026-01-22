@@ -57,7 +57,7 @@ Place breakpoints in key locations:
 
 ## Enabling Debug Logging
 
-The plugin uses IntelliJ's diagnostic logger with the category `#com.intellij.plugin.CopySettingPath`.
+The plugin uses IntelliJ's diagnostic logger with the category `#com.intellij.plugin.copySettingPath`.
 
 ### Method 1: Debug Log Settings (Sandboxed IDE)
 

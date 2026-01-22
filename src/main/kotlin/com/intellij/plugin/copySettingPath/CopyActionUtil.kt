@@ -1,11 +1,12 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package com.intellij.plugin.CopySettingPath
+package com.intellij.plugin.copySettingPath
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.newEditor.SettingsDialog
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.border.IdeaTitledBorder
 import com.intellij.ui.navigation.History
@@ -16,12 +17,28 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.Container
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.lang.reflect.Field
 import javax.swing.DefaultListModel
+import javax.swing.JButton
+import javax.swing.JCheckBox
+import javax.swing.JComboBox
+import javax.swing.JEditorPane
+import javax.swing.JLabel
+import javax.swing.JList
 import javax.swing.JPanel
+import javax.swing.JRadioButton
+import javax.swing.JSlider
+import javax.swing.JSpinner
 import javax.swing.JTable
+import javax.swing.JTextArea
+import javax.swing.JTextField
+import javax.swing.ListCellRenderer
 import javax.swing.SwingUtilities
+import javax.swing.text.JTextComponent
+import kotlin.math.max
+import kotlin.math.min
 
 /** Logger instance for the Copy Setting Path plugin. */
 val LOG: Logger = Logger.getInstance("#com.intellij.plugin.CopySettingPath")
@@ -324,7 +341,7 @@ private fun findAllTitledSeparators(container: Container): List<TitledSeparator>
  * @param separator The separator to use between path components.
  */
 fun appendItem(path: StringBuilder, item: String?, separator: String = PathConstants.SEPARATOR) {
-    if (!item.isNullOrEmpty() && !path.trimEnd { it in PathSeparator.allSeparatorChars }.endsWith(item)) {
+    if (!item.isNullOrEmpty() && !path.trimEnd { it in PathSeparator.Companion.allSeparatorChars }.endsWith(item)) {
         path.append(item).append(separator)
     }
 }
@@ -353,7 +370,7 @@ fun appendSrcText(path: StringBuilder, text: String?) {
  */
 fun trimFinalResult(path: StringBuilder): String {
     return path.toString()
-        .trimEnd { it in PathSeparator.allSeparatorChars }
+        .trimEnd { it in PathSeparator.Companion.allSeparatorChars }
         .removeHtmlTags()
         .removeAdvancedSettingIds()
 }
@@ -649,7 +666,7 @@ private fun String.removeHtmlTags(): String = replace(Regex("<[^>]*>"), "")
  */
 fun findAdjacentComponent(src: Component): Component? {
     // Priority 1: Check if src is a JLabel with labelFor set - this is the most reliable
-    if (src is javax.swing.JLabel) {
+    if (src is JLabel) {
         src.labelFor?.let { target ->
             if (target.isVisible) {
                 // If labelFor points to a container, search inside for value component
@@ -661,7 +678,7 @@ fun findAdjacentComponent(src: Component): Component? {
         }
     }
 
-    val parent = src.parent as? Container ?: return null
+    val parent = src.parent ?: return null
 
     // Priority 2: Look for the next visible value component among siblings
     val components = parent.components
@@ -724,18 +741,18 @@ private fun isValueComponent(component: Component): Boolean {
     }
 
     // Exclude text areas and editor panes (used for descriptions)
-    if (component is javax.swing.JTextArea || component is javax.swing.JEditorPane) {
+    if (component is JTextArea || component is JEditorPane) {
         return false
     }
 
     return when (component) {
-        is javax.swing.JComboBox<*> -> true
-        is javax.swing.JTextField -> true
-        is javax.swing.JCheckBox -> true
-        is javax.swing.JRadioButton -> true
-        is javax.swing.JSpinner -> true
-        is javax.swing.JSlider -> true
-        is javax.swing.JButton -> {
+        is JComboBox<*> -> true
+        is JTextField -> true
+        is JCheckBox -> true
+        is JRadioButton -> true
+        is JSpinner -> true
+        is JSlider -> true
+        is JButton -> {
             // ComboBoxButton is a JButton used by ComboBoxAction
             component.javaClass.simpleName.contains("ComboBoxButton", ignoreCase = true)
         }
@@ -790,10 +807,10 @@ private fun findNearbyValueComponent(src: Component, parent: Container): Compone
 /**
  * Gets the screen bounds of a component, or null if not available.
  */
-private fun getScreenBounds(component: Component): java.awt.Rectangle? {
+private fun getScreenBounds(component: Component): Rectangle? {
     return runCatching {
         val location = component.locationOnScreen
-        java.awt.Rectangle(location.x, location.y, component.width, component.height)
+        Rectangle(location.x, location.y, component.width, component.height)
     }.getOrNull()
 }
 
@@ -803,7 +820,7 @@ private fun getScreenBounds(component: Component): java.awt.Rectangle? {
  */
 private fun findBestCandidateInContainer(
     src: Component,
-    srcScreenBounds: java.awt.Rectangle,
+    srcScreenBounds: Rectangle,
     container: Container,
     currentBestDistance: Int
 ): Pair<Component, Int>? {
@@ -837,7 +854,7 @@ private fun findBestCandidateInContainer(
                 val horizontalDist = compLeft - srcRight
 
                 // Strict vertical alignment - components must overlap vertically (same row)
-                val verticalOverlap = kotlin.math.min(srcBottom, compBottom) - kotlin.math.max(srcTop, compTop)
+                val verticalOverlap = min(srcBottom, compBottom) - max(srcTop, compTop)
                 
                 if (verticalOverlap > 0) {
                     // Prefer components that are closer horizontally
@@ -878,34 +895,34 @@ private fun findBestCandidateInContainer(
  */
 fun extractComponentValue(component: Component): String? {
     return when (component) {
-        is javax.swing.JComboBox<*> -> {
+        is JComboBox<*> -> {
             extractComboBoxDisplayText(component)
         }
-        is javax.swing.JButton -> {
+        is JButton -> {
             // ComboBoxButton extends JButton and displays its text via getText()
             component.text?.takeIf { it.isNotBlank() }
         }
-        is javax.swing.JTextField -> {
+        is JTextField -> {
             // Return text even if empty (empty string), but null if text is null
             component.text ?: ""
         }
-        is javax.swing.JCheckBox -> {
+        is JCheckBox -> {
             if (component.text.isNullOrBlank()) {
                 if (component.isSelected) "Enabled" else "Disabled"
             } else {
                 component.text
             }
         }
-        is javax.swing.JRadioButton -> {
+        is JRadioButton -> {
             component.text?.takeIf { component.isSelected }
         }
-        is javax.swing.JSpinner -> {
+        is JSpinner -> {
             component.value?.toString()
         }
-        is javax.swing.JSlider -> {
+        is JSlider -> {
             component.value.toString()
         }
-        is javax.swing.text.JTextComponent -> {
+        is JTextComponent -> {
             // Return text even if empty
             component.text ?: ""
         }
@@ -927,16 +944,16 @@ fun extractComponentValue(component: Component): String? {
  * @return The rendered display text, or null if not extractable.
  */
 @Suppress("UNCHECKED_CAST")
-private fun extractComboBoxDisplayText(comboBox: javax.swing.JComboBox<*>): String? {
+private fun extractComboBoxDisplayText(comboBox: JComboBox<*>): String? {
     val selectedItem = comboBox.selectedItem ?: return null
     val selectedIndex = comboBox.selectedIndex
 
     // Try to get the display text from the renderer
     runCatching {
-        val renderer = comboBox.renderer as? javax.swing.ListCellRenderer<Any?>
+        val renderer = comboBox.renderer as? ListCellRenderer<Any?>
         if (renderer != null) {
             val renderedComponent = renderer.getListCellRendererComponent(
-                javax.swing.JList<Any?>(),
+                JList<Any?>(),
                 selectedItem,
                 selectedIndex,
                 false,
@@ -976,8 +993,8 @@ private fun extractComboBoxDisplayText(comboBox: javax.swing.JComboBox<*>): Stri
  */
 private fun extractTextFromRenderedComponent(component: Component): String? {
     return when (component) {
-        is javax.swing.JLabel -> component.text?.takeIf { it.isNotBlank() }
-        is com.intellij.ui.SimpleColoredComponent -> {
+        is JLabel -> component.text?.takeIf { it.isNotBlank() }
+        is SimpleColoredComponent -> {
             // SimpleColoredComponent is commonly used in IntelliJ renderers
             // Use getCharSequence(false) to get all text fragments
             runCatching {

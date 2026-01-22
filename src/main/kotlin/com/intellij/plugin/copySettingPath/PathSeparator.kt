@@ -1,4 +1,4 @@
-package com.intellij.plugin.CopySettingPath
+package com.intellij.plugin.copySettingPath
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls

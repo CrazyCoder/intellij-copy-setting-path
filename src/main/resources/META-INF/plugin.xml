@@ -40,7 +40,7 @@
   <resource-bundle>messages.CopySettingPathBundle</resource-bundle>
 
   <applicationListeners>
-    <listener class="com.intellij.plugin.CopySettingPath.CopySettingPathAppLifecycleListener"
+    <listener class="com.intellij.plugin.copySettingPath.CopySettingPathAppLifecycleListener"
               topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 
@@ -51,17 +51,23 @@
                      groupKey="group.advanced.settings.copy.setting.path"
                      bundle="messages.CopySettingPathBundle"/>
 
+    <!-- Advanced setting to include adjacent value for labels ending with colon -->
+    <advancedSetting id="copy.setting.path.include.adjacent.value"
+                     default="true"
+                     groupKey="group.advanced.settings.copy.setting.path"
+                     bundle="messages.CopySettingPathBundle"/>
+
     <!-- Advanced setting for path separator style -->
     <advancedSetting id="copy.setting.path.separator"
                      default="PIPE"
-                     enumClass="com.intellij.plugin.CopySettingPath.PathSeparator"
+                     enumClass="com.intellij.plugin.copySettingPath.PathSeparator"
                      groupKey="group.advanced.settings.copy.setting.path"
                      bundle="messages.CopySettingPathBundle"/>
   </extensions>
 
   <actions>
     <action id="CopySettingPath" description="Copies setting path to clipboard" text="Copy Setting Path"
-            class="com.intellij.plugin.CopySettingPath.actions.CopySettingPath">
+            class="com.intellij.plugin.copySettingPath.actions.CopySettingPath">
       <add-to-group group-id="CutCopyPasteGroup" anchor="last"/>
       <mouse-shortcut keymap="$default" keystroke="control button1"/>
       <mouse-shortcut keymap="Mac OS X 10.5+" keystroke="meta button1"/>

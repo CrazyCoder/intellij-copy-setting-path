@@ -1,4 +1,4 @@
-package com.intellij.plugin.CopySettingPath
+package com.intellij.plugin.copySettingPath
 
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
