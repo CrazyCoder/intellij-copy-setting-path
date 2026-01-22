@@ -129,11 +129,16 @@ object ComponentLabelExtractor {
      * that has a labeledBy label ending with ":". This handles cases where
      * only the first button in a group has the labeledBy property set.
      *
+     * Only returns a group label if the sibling with that label is on the same
+     * visual row as the target button. This prevents labels for horizontal
+     * checkbox groups from being applied to checkboxes on different rows.
+     *
      * @param button The toggle button to find the group label for.
      * @return The group label text if found, or null.
      */
     private fun findGroupLabelFromSiblings(button: JToggleButton): String? {
         val parent = button.parent ?: return null
+        val buttonBounds = getScreenBounds(button) ?: return null
 
         // Look for sibling toggle buttons with labeledBy that ends with ":"
         for (sibling in parent.components) {
@@ -144,7 +149,10 @@ object ComponentLabelExtractor {
             if (labeledBy is JLabel) {
                 val labelText = labeledBy.text?.removeHtmlTags()?.trim()
                 if (!labelText.isNullOrEmpty() && labelText.endsWith(":")) {
-                    return labelText
+                    // Only use this group label if the sibling is on the same row
+                    if (isOnSameRow(buttonBounds, sibling)) {
+                        return labelText
+                    }
                 }
             }
         }
