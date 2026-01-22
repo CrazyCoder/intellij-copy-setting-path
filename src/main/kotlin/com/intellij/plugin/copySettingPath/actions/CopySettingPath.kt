@@ -31,6 +31,7 @@ import java.awt.Component
 import javax.swing.AbstractButton
 import javax.swing.JLabel
 import javax.swing.JTable
+import javax.swing.JTree
 
 /**
  * Action that copies the full navigation path to the currently focused UI setting.
@@ -150,7 +151,8 @@ class CopySettingPath : DumbAwareAction() {
         val selectedRow = treeTable.selectedRow.takeIf { it != -1 } ?: detectRowFromMousePoint(treeTable, e)
         if (selectedRow != -1) {
             treeTable.tree.getPathForRow(selectedRow)?.path?.let { rowPath ->
-                appendTreePath(rowPath, path, separator)
+                val filteredPath = filterInvisibleRoot(rowPath, treeTable.tree)
+                appendTreePath(filteredPath, path, separator)
             }
         }
     }
@@ -163,8 +165,28 @@ class CopySettingPath : DumbAwareAction() {
         val rowForLocation = tree.getRowForLocation(point.x, point.y)
         if (rowForLocation > 0) {
             tree.getPathForRow(rowForLocation)?.let { treePath ->
-                appendTreePath(treePath.path, path, separator)
+                val filteredPath = filterInvisibleRoot(treePath.path, tree)
+                appendTreePath(filteredPath, path, separator)
             }
+        }
+    }
+
+    /**
+     * Filters out the root node from the path if it's not visible in the tree.
+     *
+     * Some trees (like the Keymap tree) have `isRootVisible = false`, meaning the root
+     * node exists in the model but is not displayed. In such cases, we should skip
+     * the root when building the copied path to match what the user actually sees.
+     *
+     * @param pathArray The full tree path including the root.
+     * @param tree The tree component to check for root visibility.
+     * @return The filtered path array, with root removed if not visible.
+     */
+    private fun filterInvisibleRoot(pathArray: Array<out Any>, tree: JTree): Array<out Any> {
+        return if (!tree.isRootVisible && pathArray.size > 1) {
+            pathArray.drop(1).toTypedArray()
+        } else {
+            pathArray
         }
     }
 

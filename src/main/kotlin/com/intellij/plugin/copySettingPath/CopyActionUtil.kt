@@ -2,6 +2,7 @@
 
 package com.intellij.plugin.copySettingPath
 
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.options.Configurable
@@ -21,6 +22,7 @@ import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.lang.reflect.Field
 import javax.swing.DefaultListModel
+import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -151,8 +153,11 @@ fun getPathFromSettingsDialog(settings: SettingsDialog): String? {
 /**
  * Appends tree node path segments to the path builder.
  *
- * For each node in the tree path, extracts its text representation either
- * via `toString()` or by accessing the `myText` field via reflection.
+ * For each node in the tree path, extracts its text representation.
+ * The extraction logic handles several cases:
+ * 1. DefaultMutableTreeNode with String userObject (e.g., Keymap action IDs) - resolves to display name via ActionManager
+ * 2. DefaultMutableTreeNode with Group userObject - extracts group name
+ * 3. Other nodes - uses toString() or myText field via reflection
  *
  * @param treePath Array of tree path nodes.
  * @param path StringBuilder to append path segments to.
@@ -160,13 +165,111 @@ fun getPathFromSettingsDialog(settings: SettingsDialog): String? {
  */
 fun appendTreePath(treePath: Array<out Any>, path: StringBuilder, separator: String = PathConstants.SEPARATOR) {
     treePath.forEach { node ->
-        val pathStr = node.toString()
-        if (pathStr.isEmpty()) {
-            extractMyTextField(node)?.let { appendItem(path, it, separator) }
-        } else {
-            appendItem(path, pathStr, separator)
+        val displayText = extractTreeNodeDisplayText(node)
+        if (!displayText.isNullOrEmpty()) {
+            appendItem(path, displayText, separator)
         }
     }
+}
+
+/**
+ * Extracts the display text from a tree node.
+ *
+ * Handles special cases like Keymap dialog where tree nodes contain action IDs
+ * instead of display names. For such nodes, resolves the action ID to its
+ * human-readable presentation text via ActionManager.
+ *
+ * @param node The tree path node to extract display text from.
+ * @return The display text, or null if it cannot be determined.
+ */
+private fun extractTreeNodeDisplayText(node: Any): String? {
+    // Handle DefaultMutableTreeNode (used by Keymap and other dialogs)
+    if (node is DefaultMutableTreeNode) {
+        val userObject = node.userObject ?: return null
+        return extractDisplayTextFromUserObject(userObject)
+    }
+
+    // Fallback: try toString() or myText field
+    val pathStr = node.toString()
+    return if (pathStr.isEmpty()) {
+        extractMyTextField(node)
+    } else {
+        pathStr
+    }
+}
+
+/**
+ * Extracts display text from a tree node's userObject.
+ *
+ * Handles various userObject types:
+ * - String: Might be an action ID (in Keymap dialog) - resolve via ActionManager
+ * - Group: Extract the group name
+ * - QuickList: Extract the display name
+ * - Other: Use toString()
+ *
+ * @param userObject The userObject from a DefaultMutableTreeNode.
+ * @return The display text for the userObject.
+ */
+private fun extractDisplayTextFromUserObject(userObject: Any): String? {
+    return when (userObject) {
+        is String -> {
+            // Could be an action ID (e.g., "Github.PullRequest.Changes.MarkNotViewed")
+            // Try to resolve it to a display name via ActionManager
+            resolveActionDisplayName(userObject) ?: userObject
+        }
+        else -> {
+            // Try common interfaces/methods for display name extraction
+            extractDisplayNameViaReflection(userObject) ?: userObject.toString().takeIf { it.isNotEmpty() }
+        }
+    }
+}
+
+/**
+ * Resolves an action ID to its display name via ActionManager.
+ *
+ * This is used for Keymap dialog tree nodes where the userObject is
+ * the raw action ID string, but the display should show the action's
+ * human-readable name from its template presentation.
+ *
+ * @param actionId The action ID to resolve.
+ * @return The action's display name, or null if it cannot be resolved.
+ */
+private fun resolveActionDisplayName(actionId: String): String? {
+    // Skip if it doesn't look like an action ID
+    // Action IDs typically contain dots or are alphanumeric with some structure
+    if (actionId.isBlank()) return null
+
+    return runCatching {
+        val action = ActionManager.getInstance().getAction(actionId)
+        action?.templatePresentation?.text?.takeIf { it.isNotBlank() }
+    }.onFailure { e ->
+        LOG.debug("Could not resolve action display name for '$actionId': ${e.message}")
+    }.getOrNull()
+}
+
+/**
+ * Extracts display name from an object using reflection.
+ *
+ * Tries common methods like getName(), getDisplayName(), getText() that
+ * are often present on objects used in tree structures.
+ *
+ * @param obj The object to extract display name from.
+ * @return The display name, or null if not extractable.
+ */
+private fun extractDisplayNameViaReflection(obj: Any): String? {
+    val methodsToTry = listOf("getName", "getDisplayName", "getText", "toString")
+
+    for (methodName in methodsToTry) {
+        runCatching {
+            val method = obj.javaClass.getMethod(methodName)
+            method.isAccessible = true
+            val result = method.invoke(obj)?.toString()
+            if (!result.isNullOrBlank() && result != obj.javaClass.name) {
+                return result
+            }
+        }
+    }
+    return null
 }
 
 /**
