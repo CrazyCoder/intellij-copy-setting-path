@@ -15,6 +15,8 @@ navigation path to any UI setting in IDE dialogs (such as Settings, Project Stru
 
 ### From JetBrains Marketplace
 
+Install directly from the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/29878-copy-setting-path), or from within your IDE:
+
 1. Open your JetBrains IDE
 2. Go to **Settings | Plugins | Marketplace**
 3. Search for "Copy Setting Path"
