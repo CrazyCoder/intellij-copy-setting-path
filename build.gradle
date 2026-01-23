@@ -71,7 +71,6 @@ intellijPlatform {
             // Verify against the IDE version we build with
             ide(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaCommunity, '2025.1.2')
         }
-
     }
 
     publishing {

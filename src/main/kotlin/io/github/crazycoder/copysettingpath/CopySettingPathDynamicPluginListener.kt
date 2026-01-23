@@ -18,7 +18,7 @@ import com.intellij.openapi.diagnostic.debug
 class CopySettingPathDynamicPluginListener : DynamicPluginListener {
 
     companion object {
-        private const val PLUGIN_ID = "com.intellij.plugin.copy.setting.path"
+        private const val PLUGIN_ID = "io.github.crazycoder.copysettingpath"
     }
 
     override fun pluginLoaded(pluginDescriptor: IdeaPluginDescriptor) {
