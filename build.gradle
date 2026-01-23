@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.intellij.plugin.copy.setting.path'
-version = '1.0'
+version = '1.1'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -47,8 +47,14 @@ intellijPlatform {
         """
     }
 
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+
     publishing {
-        // Configure if you want to publish to JetBrains Marketplace
+        token = providers.environmentVariable("PUBLISH_TOKEN")
     }
 }
 

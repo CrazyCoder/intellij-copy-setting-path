@@ -21,6 +21,9 @@ Thumbs.db
 
 # Local configuration
 /local.properties
+
+# Plugin signing credentials (NEVER commit)
+/.signing/
 CLAUDE.md
 /.claude/
 /.serena/
