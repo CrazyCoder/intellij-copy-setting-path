@@ -61,7 +61,7 @@ private fun matchesClassName(clazz: Class<*>, targetClassName: String): Boolean 
     }
 
     // Check if it's an anonymous/inner class of the target (e.g., ConfigurableEditor$1)
-    if (clazz.name.startsWith("$targetClassName\$")) {
+    if (clazz.name.startsWith("$targetClassName$")) {
         return true
     }
 

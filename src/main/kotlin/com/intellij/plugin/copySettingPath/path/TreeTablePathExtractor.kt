@@ -141,7 +141,7 @@ object TreeTablePathExtractor {
             // If node.toString() differs from userObject.toString(), use node's version
             val nodeString = node.toString()
             val userObjectString = userObject.toString()
-            if (nodeString != userObjectString && !nodeString.isNullOrEmpty() && !looksLikeObjectReference(nodeString)) {
+            if (nodeString != userObjectString && nodeString.isNotEmpty() && !looksLikeObjectReference(nodeString)) {
                 return nodeString
             }
 
