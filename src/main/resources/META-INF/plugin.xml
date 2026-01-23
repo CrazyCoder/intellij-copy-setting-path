@@ -31,6 +31,13 @@
       <li><b>Mouse click interception</b>: Enable to copy paths without activating UI components, and to enable main menu path copying</li>
     </ul>
 
+    <h3>Platform Limitations</h3>
+    <p><b>Main menu path copying is not supported</b> when the IDE uses native (OS-provided) menus:</p>
+    <ul>
+      <li><b>macOS:</b> Native menu bar is enabled by default</li>
+      <li><b>Linux:</b> Native menu integration may be enabled depending on your desktop environment</li>
+    </ul>
+
     <h3>Important Notice</h3>
     <p>This plugin is <b>incompatible</b> with the legacy <b>Copy Option Path</b> plugin. If you have the old plugin installed, please <b>uninstall it</b> before using this plugin. The IDE will prevent both plugins from running simultaneously.</p>
     ]]></description>

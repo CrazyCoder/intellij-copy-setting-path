@@ -57,6 +57,15 @@ The menu path is copied without executing the menu action.
 - **Minimum IDE Version:** 2025.1+
 - **Supported IDEs:** All JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, GoLand, etc.)
 
+### Platform Limitations
+
+**Main Menu Path Copying on macOS and Linux:**
+
+Menu path copying is **not supported** when the IDE uses native (OS-provided) menus:
+
+- **macOS:** Native menu bar is enabled by default. Menu path copying will not work.
+- **Linux:** Native menu integration (global menu) may be enabled depending on your desktop environment.
+
 > **Note:** This plugin is incompatible with the legacy **Copy Option Path** plugin (`com.intellij.plugin.copy.options`).
 > If you have the old plugin installed, please **uninstall it** before installing this plugin.
 > The IDE will automatically prevent both plugins from running simultaneously.
@@ -104,7 +113,7 @@ Keep the default (disabled) if:
 
 ## Recent Fixes
 
-This fork includes important fixes for compatibility with modern IDE versions:
+This fork includes the following improvements and bug fixes:
 
 - **Main menu path copying** — When mouse interception is enabled, you can now Ctrl+Click (Cmd+Click on macOS) on any
   main menu item to copy its full path to the clipboard. For example, clicking on "Export Settings" in the File menu
