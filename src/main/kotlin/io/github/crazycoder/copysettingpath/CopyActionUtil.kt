@@ -1,4 +1,4 @@
-package com.intellij.plugin.copySettingPath
+package io.github.crazycoder.copysettingpath
 
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Component
@@ -16,7 +16,7 @@ import java.awt.Container
  */
 
 /** Logger instance for the Copy Setting Path plugin. */
-val LOG: Logger = Logger.getInstance("#com.intellij.plugin.CopySettingPath")
+val LOG: Logger = Logger.getInstance("#io.github.crazycoder.copysettingpath")
 
 /**
  * Constants used throughout the plugin for path construction and reflection.
@@ -118,7 +118,8 @@ fun String.removeHtmlTags(): String = this
  * Pattern: "Label text:setting.id.here" -> "Label text"
  * The ID pattern is: colon followed by a dotted identifier (e.g., "copy.setting.path.separator").
  */
-private fun String.removeAdvancedSettingIds(): String = replace(RegexPatterns.ADVANCED_SETTING_ID, "")
+private fun String.removeAdvancedSettingIds(): String =
+    replace(RegexPatterns.ADVANCED_SETTING_ID, "")
 
 // ============================================================================
 // Path Building Functions
@@ -131,14 +132,22 @@ private fun String.removeAdvancedSettingIds(): String = replace(RegexPatterns.AD
  * @param item The item to append.
  * @param separator The separator to use between path components.
  */
-fun appendItem(path: StringBuilder, item: String?, separator: String = PathConstants.SEPARATOR) {
+fun appendItem(
+    path: StringBuilder,
+    item: String?,
+    separator: String = PathConstants.SEPARATOR
+) {
     if (item.isNullOrEmpty()) return
     val cleanItem = item.removeHtmlTags()
     if (cleanItem.isEmpty()) return
 
     // Check for exact segment match (not just suffix match)
-    val trimmedPath = path.trimEnd { it in PathSeparator.allSeparatorChars }.toString()
-    val lastSegment = trimmedPath.substringAfterLast(PathConstants.SEPARATOR.trim()).trim()
+    val trimmedPath =
+        path.trimEnd { it in PathSeparator.allSeparatorChars }
+            .toString()
+    val lastSegment =
+        trimmedPath.substringAfterLast(PathConstants.SEPARATOR.trim())
+            .trim()
     if (lastSegment == cleanItem) return
 
     path.append(cleanItem)

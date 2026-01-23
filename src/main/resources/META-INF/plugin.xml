@@ -1,5 +1,5 @@
 <idea-plugin>
-  <id>com.intellij.plugin.copy.setting.path</id>
+  <id>io.github.crazycoder.copysettingpath</id>
   <name>Copy Setting Path</name>
   <vendor email="sbaranov@gmail.com" url="https://github.com/CrazyCoder">Serge Baranov</vendor>
 
@@ -54,9 +54,9 @@
   <resource-bundle>messages.CopySettingPathBundle</resource-bundle>
 
   <applicationListeners>
-    <listener class="com.intellij.plugin.copySettingPath.CopySettingPathAppLifecycleListener"
+    <listener class="io.github.crazycoder.copysettingpath.CopySettingPathAppLifecycleListener"
               topic="com.intellij.ide.AppLifecycleListener"/>
-    <listener class="com.intellij.plugin.copySettingPath.CopySettingPathDynamicPluginListener"
+    <listener class="io.github.crazycoder.copysettingpath.CopySettingPathDynamicPluginListener"
               topic="com.intellij.ide.plugins.DynamicPluginListener"/>
   </applicationListeners>
 
@@ -76,14 +76,14 @@
     <!-- Advanced setting for path separator style -->
     <advancedSetting id="copy.setting.path.separator"
                      default="PIPE"
-                     enumClass="com.intellij.plugin.copySettingPath.PathSeparator"
+                     enumClass="io.github.crazycoder.copysettingpath.PathSeparator"
                      groupKey="group.advanced.settings.copy.setting.path"
                      bundle="messages.CopySettingPathBundle"/>
   </extensions>
 
   <actions>
     <action id="CopySettingPath" description="Copies setting path to clipboard" text="Copy Setting Path"
-            class="com.intellij.plugin.copySettingPath.actions.CopySettingPath">
+            class="io.github.crazycoder.copysettingpath.actions.CopySettingPath">
       <mouse-shortcut keymap="$default" keystroke="control button1"/>
       <mouse-shortcut keymap="Mac OS X 10.5+" keystroke="meta button1"/>
       <mouse-shortcut keymap="Mac OS X" keystroke="meta button1"/>

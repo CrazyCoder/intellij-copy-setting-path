@@ -4,7 +4,7 @@ plugins {
     id 'org.jetbrains.intellij.platform'
 }
 
-group = 'com.intellij.plugin.copy.setting.path'
+group = 'io.github.crazycoder.copysettingpath'
 version = '1.1'
 
 java {
@@ -48,13 +48,37 @@ intellijPlatform {
     }
 
     signing {
+        def signingDir = rootProject.file(".signing")
+        def certFile = file("$signingDir/chain.crt")
+        def keyFile = file("$signingDir/private.pem")
+
+        // Use environment variables (CI/CD) or fall back to local .signing/ files
         certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
         privateKey = providers.environmentVariable("PRIVATE_KEY")
         password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+
+        // File-based fallback for local development
+        if (certFile.exists()) {
+            certificateChainFile = certFile
+        }
+        if (keyFile.exists()) {
+            privateKeyFile = keyFile
+        }
+    }
+
+    pluginVerification {
+        ides {
+            // Verify against the IDE version we build with
+            ide(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaCommunity, '2025.1.2')
+        }
+
     }
 
     publishing {
+        def tokenFile = rootProject.file(".signing/publish_token")
+        // Use environment variable (CI/CD) or fall back to local .signing/publish_token file
         token = providers.environmentVariable("PUBLISH_TOKEN")
+                .orElse(tokenFile.exists() ? providers.provider { tokenFile.text.trim() } : providers.provider { "" })
     }
 }
 

@@ -1,8 +1,8 @@
-package com.intellij.plugin.copySettingPath.path
+package io.github.crazycoder.copysettingpath.path
 
 import com.intellij.openapi.actionSystem.impl.ActionMenu
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
-import com.intellij.plugin.copySettingPath.removeHtmlTags
+import io.github.crazycoder.copysettingpath.removeHtmlTags
 import java.awt.Component
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem

@@ -1,4 +1,4 @@
-package com.intellij.plugin.copySettingPath
+package io.github.crazycoder.copysettingpath
 
 import java.lang.reflect.Field
 

@@ -1,4 +1,4 @@
-package com.intellij.plugin.copySettingPath.actions
+package io.github.crazycoder.copysettingpath.actions
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -6,11 +6,11 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.plugin.copySettingPath.LOG
-import com.intellij.plugin.copySettingPath.PathSeparator
-import com.intellij.plugin.copySettingPath.path.PathBuilder
-import com.intellij.plugin.copySettingPath.trimFinalResult
 import com.intellij.util.ui.TextTransferable
+import io.github.crazycoder.copysettingpath.LOG
+import io.github.crazycoder.copysettingpath.PathSeparator
+import io.github.crazycoder.copysettingpath.path.PathBuilder
+import io.github.crazycoder.copysettingpath.trimFinalResult
 
 /**
  * Action that copies the full navigation path to the currently focused UI setting.

@@ -1,4 +1,4 @@
-package com.intellij.plugin.copySettingPath
+package io.github.crazycoder.copysettingpath
 
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
@@ -10,9 +10,9 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.plugin.copySettingPath.actions.CopySettingPath
-import com.intellij.plugin.copySettingPath.path.MenuPathExtractor
 import com.intellij.util.ui.TextTransferable
+import io.github.crazycoder.copysettingpath.actions.CopySettingPath
+import io.github.crazycoder.copysettingpath.path.MenuPathExtractor
 import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.event.InputEvent

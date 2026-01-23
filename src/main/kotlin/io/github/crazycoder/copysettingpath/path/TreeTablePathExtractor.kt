@@ -1,11 +1,11 @@
-package com.intellij.plugin.copySettingPath.path
+package io.github.crazycoder.copysettingpath.path
 
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.plugin.copySettingPath.*
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.ui.treeStructure.treetable.TreeTable
+import io.github.crazycoder.copysettingpath.*
 import java.awt.Component
 import java.awt.Container
 import javax.swing.*

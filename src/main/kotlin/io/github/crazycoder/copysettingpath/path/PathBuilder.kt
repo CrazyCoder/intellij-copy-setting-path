@@ -1,10 +1,10 @@
-package com.intellij.plugin.copySettingPath.path
+package io.github.crazycoder.copysettingpath.path
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.plugin.copySettingPath.appendItem
+import io.github.crazycoder.copysettingpath.appendItem
 import java.awt.Component
 
 /**

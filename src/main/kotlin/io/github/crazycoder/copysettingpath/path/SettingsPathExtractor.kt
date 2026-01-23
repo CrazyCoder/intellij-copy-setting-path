@@ -1,12 +1,11 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package com.intellij.plugin.copySettingPath.path
+package io.github.crazycoder.copysettingpath.path
 
 import com.intellij.openapi.options.newEditor.SettingsDialog
-import com.intellij.plugin.copySettingPath.*
 import com.intellij.ui.TitledSeparator
-
 import com.intellij.ui.tabs.JBTabs
+import io.github.crazycoder.copysettingpath.*
 import java.awt.Component
 import java.awt.Container
 import java.util.*

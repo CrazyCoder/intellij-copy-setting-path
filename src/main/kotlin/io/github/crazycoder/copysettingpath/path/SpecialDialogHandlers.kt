@@ -1,14 +1,14 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package com.intellij.plugin.copySettingPath.path
+package io.github.crazycoder.copysettingpath.path
 
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.options.Configurable
-import com.intellij.plugin.copySettingPath.LOG
-import com.intellij.plugin.copySettingPath.PathConstants
-import com.intellij.plugin.copySettingPath.appendItem
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
+import io.github.crazycoder.copysettingpath.LOG
+import io.github.crazycoder.copysettingpath.PathConstants
+import io.github.crazycoder.copysettingpath.appendItem
 import javax.swing.DefaultListModel
 
 /**

@@ -1,4 +1,4 @@
-package com.intellij.plugin.copySettingPath
+package io.github.crazycoder.copysettingpath
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.treeStructure.treetable.TreeTable

@@ -57,7 +57,7 @@ Place breakpoints in key locations:
 
 ## Enabling Debug Logging
 
-The plugin uses IntelliJ's diagnostic logger with the category `#com.intellij.plugin.copySettingPath`.
+The plugin uses IntelliJ's diagnostic logger with the category `#io.github.crazycoder.copysettingpath`.
 
 ### Method 1: Debug Log Settings (Sandboxed IDE)
 
@@ -66,7 +66,7 @@ In the **sandboxed IDE** that launches when you run the plugin:
 1. Go to **Help → Diagnostic Tools → Debug Log Settings...**
 2. Add the following line:
    ```
-   #com.intellij.plugin.CopySettingPath
+   #io.github.crazycoder.copysettingpath
    ```
 3. Click **OK**
 4. Use the plugin - debug messages will appear in the IDE log
@@ -112,7 +112,7 @@ LOG.warn("Can not get project structure path: " + e.message)
 To add more debug output, use the existing logger:
 
 ```kotlin
-import com.intellij.plugin.CopySettingPath.LOG
+import io.github.crazycoder.copysettingpath.LOG
 
 // Debug level (only shown when debug logging enabled)
 LOG.debug("Debug message: $variable")

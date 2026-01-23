@@ -1,11 +1,11 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package com.intellij.plugin.copySettingPath.path
+package io.github.crazycoder.copysettingpath.path
 
 import com.intellij.openapi.options.advanced.AdvancedSettings
-import com.intellij.plugin.copySettingPath.LayoutConstants
-import com.intellij.plugin.copySettingPath.removeHtmlTags
 import com.intellij.ui.SimpleColoredComponent
+import io.github.crazycoder.copysettingpath.LayoutConstants
+import io.github.crazycoder.copysettingpath.removeHtmlTags
 import java.awt.Component
 import java.awt.Container
 import java.awt.Rectangle
