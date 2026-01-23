@@ -114,15 +114,15 @@ fun extractMyTextField(obj: Any): String? {
 /**
  * Extracts a display name from an object using common getter methods.
  *
- * Tries methods in order: getDisplayName, getName, getText, getPresentableText.
- * This consolidates the logic that was previously duplicated.
+ * Tries methods in order: getDisplayName, getName, getText, getPresentableText, title.
+ * Also handles special cases like InlayGroupSettingProvider where we need group.title().
  *
  * @param obj The object to extract display name from.
  * @param additionalMethods Additional method names to try after the standard ones.
  * @return The display name, or null if not extractable.
  */
 fun extractDisplayNameViaReflection(obj: Any, vararg additionalMethods: String): String? {
-    val methodsToTry = listOf("getDisplayName", "getName", "getText", "getPresentableText") + additionalMethods
+    val methodsToTry = listOf("getDisplayName", "getName", "getText", "getPresentableText", "title") + additionalMethods
 
     for (methodName in methodsToTry) {
         runCatching {
@@ -134,5 +134,19 @@ fun extractDisplayNameViaReflection(obj: Any, vararg additionalMethods: String):
             }
         }
     }
+
+    // Special case: InlayGroupSettingProvider has group.title()
+    // Try getGroup().title() chain for provider-like objects
+    runCatching {
+        val groupGetter = obj.javaClass.getMethod("getGroup")
+        val group = groupGetter.invoke(obj) ?: return@runCatching null
+        // Try title() on the group (for InlayGroup enum)
+        val titleMethod = group.javaClass.getMethod("title")
+        val result = titleMethod.invoke(group)?.toString()
+        if (!result.isNullOrBlank()) {
+            return result
+        }
+    }
+
     return null
 }

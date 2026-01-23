@@ -123,10 +123,29 @@ object TreeTablePathExtractor {
 
     /**
      * Extracts the display text from a tree node.
+     *
+     * For DefaultMutableTreeNode:
+     * 1. First try reflection on userObject to get display name (getName, getDisplayName, title, etc.)
+     * 2. If reflection fails, check if node.toString() differs from userObject.toString() -
+     *    this indicates a custom toString() override (like ColorOptionsTree.MyTreeNode)
+     * 3. Fall back to userObject.toString() if it looks like a display name
      */
     private fun extractTreeNodeDisplayText(node: Any): String? {
         if (node is DefaultMutableTreeNode) {
             val userObject = node.userObject ?: return null
+
+            // First try to get display name via reflection (handles InlayGroup.title(), etc.)
+            extractDisplayNameViaReflection(userObject)?.let { return it }
+
+            // Check if node has a custom toString() override (like ColorOptionsTree.MyTreeNode)
+            // If node.toString() differs from userObject.toString(), use node's version
+            val nodeString = node.toString()
+            val userObjectString = userObject.toString()
+            if (nodeString != userObjectString && !nodeString.isNullOrEmpty() && !looksLikeObjectReference(nodeString)) {
+                return nodeString
+            }
+
+            // Fall back to userObject string representation
             return extractDisplayTextFromUserObject(userObject)
         }
 
