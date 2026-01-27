@@ -12,6 +12,7 @@ import java.awt.Container
 import java.awt.MouseInfo
 import java.awt.Point
 import java.util.concurrent.TimeUnit
+import javax.swing.MenuSelectionManager
 
 /**
  * Core utilities and constants for the Copy Setting Path plugin.
@@ -212,6 +213,9 @@ private const val BALLOON_DISPLAY_DURATION_SECONDS = 2L
  */
 fun showCopiedBalloon(copiedPath: String) {
     if (!AdvancedSettings.getBoolean(SHOW_BALLOON_SETTING_ID)) return
+
+    // Skip balloon when menu is open (balloon would appear behind menu)
+    if (MenuSelectionManager.defaultManager().selectedPath.isNotEmpty()) return
 
     val mouseLocation = MouseInfo.getPointerInfo()?.location ?: return
     val point = RelativePoint(Point(mouseLocation.x, mouseLocation.y))
