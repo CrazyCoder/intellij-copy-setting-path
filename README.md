@@ -83,6 +83,7 @@ The plugin provides settings in **Settings | Advanced Settings** under the **Cop
 |---------------------------------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Intercept Ctrl/Cmd+Click for Copy Setting Path**      | Disabled | When enabled, Ctrl+Click (or Cmd+Click on macOS) in dialogs will copy the setting path **without activating UI components** like checkboxes or buttons. |
 | **Include adjacent value for labels ending with colon** | Enabled  | When enabled, labels ending with `:` will include the value of the adjacent component (combo box, text field, etc.) in the copied path.                 |
+| **Show balloon notification when path is copied**       | Enabled  | When enabled, a brief popup appears near the mouse cursor showing the path that was copied to the clipboard.                                            |
 | **Path separator style**                                | Pipe     | Choose the separator character used between path components in the copied setting path.                                                                 |
 
 #### Path Separator Styles

@@ -36,6 +36,9 @@
       <li><b>Mouse click interception</b>: Enable to copy paths without activating UI components, and to enable main
         menu path copying
       </li>
+      <li><b>Balloon notification</b>: Toggle the brief popup that appears near the mouse cursor when a path is copied
+        (enabled by default)
+      </li>
     </ul>
 
     <h3>Shortcut Conflict</h3>
