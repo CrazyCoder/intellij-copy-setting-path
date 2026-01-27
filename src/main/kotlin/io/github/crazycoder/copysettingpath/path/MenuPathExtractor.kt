@@ -38,6 +38,20 @@ object MenuPathExtractor {
     /**
      * Builds the full menu path from a menu component to the menu bar root.
      *
+     * Menu hierarchy structure in IntelliJ/Swing:
+     * ```
+     * JMenuBar
+     *   └── ActionMenu ("File")           <- top-level menu in menu bar
+     *         └── JPopupMenu              <- popup shown when menu clicked
+     *               ├── ActionMenuItem    <- leaf menu items
+     *               └── ActionMenu        <- submenu
+     *                     └── JPopupMenu  <- nested popup
+     *                           └── ...
+     * ```
+     *
+     * The key insight is that JPopupMenu.getInvoker() returns the ActionMenu that
+     * opened the popup, allowing us to traverse up through nested submenus.
+     *
      * @param component The menu component (ActionMenuItem, ActionMenu, JMenuItem, or JMenu).
      * @param separator The separator to use between path segments.
      * @return The built path string, or null if path cannot be determined.
@@ -47,29 +61,32 @@ object MenuPathExtractor {
 
         val pathSegments = mutableListOf<String>()
 
-        // Get the text of the target component
+        // Get the text of the target component (the menu item that was clicked)
         val targetText = getMenuComponentText(component)
         if (!targetText.isNullOrBlank()) {
             pathSegments.add(targetText)
         }
 
-        // Walk up the menu hierarchy
+        // Walk up the menu hierarchy using the invoker chain:
+        // MenuItem -> JPopupMenu -> (invoker) ActionMenu -> JPopupMenu -> ... -> JMenuBar
         var current: Component? = component.parent
         while (current != null) {
             when (current) {
                 is JMenuBar -> {
-                    // Reached the top - we're done
+                    // Reached the menu bar - this is the root, we're done
                     break
                 }
 
                 is JPopupMenu -> {
-                    // Get the invoker (the menu that opened this popup)
+                    // JPopupMenu is the container for menu items when a menu is open.
+                    // Its invoker is the ActionMenu/JMenu that opened this popup.
                     val invoker = current.invoker
                     if (invoker != null) {
                         val invokerText = getMenuComponentText(invoker)
                         if (!invokerText.isNullOrBlank()) {
                             pathSegments.add(invokerText)
                         }
+                        // Continue from the invoker's parent (skip to next level up)
                         current = invoker.parent
                     } else {
                         current = current.parent
@@ -77,8 +94,7 @@ object MenuPathExtractor {
                 }
 
                 is ActionMenu -> {
-                    // This shouldn't happen in normal flow (menus are inside popups)
-                    // but handle it just in case
+                    // Direct ActionMenu parent (rare - menus are usually inside JPopupMenu)
                     val menuText = getMenuComponentText(current)
                     if (!menuText.isNullOrBlank()) {
                         pathSegments.add(menuText)
@@ -87,6 +103,7 @@ object MenuPathExtractor {
                 }
 
                 else -> {
+                    // Skip other container types (panels, etc.)
                     current = current.parent
                 }
             }
@@ -94,7 +111,7 @@ object MenuPathExtractor {
 
         if (pathSegments.isEmpty()) return null
 
-        // Reverse to get root-to-leaf order and join
+        // Segments were collected leaf-to-root, reverse to get root-to-leaf order
         pathSegments.reverse()
         return pathSegments.joinToString(separator)
     }

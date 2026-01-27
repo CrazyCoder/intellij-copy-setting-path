@@ -218,6 +218,9 @@ object TreeTablePathExtractor {
 
     /**
      * Resolves an action ID to its display name via ActionManager.
+     *
+     * Tree nodes in keymap trees often store action IDs as their userObject.
+     * This method looks up the action and returns its human-readable template text.
      */
     private fun resolveActionDisplayName(actionId: String): String? {
         if (actionId.isBlank()) return null
@@ -225,8 +228,6 @@ object TreeTablePathExtractor {
         return runCatching {
             val action = ActionManager.getInstance().getAction(actionId)
             action?.templatePresentation?.text?.takeIf { it.isNotBlank() }
-        }.onFailure { e ->
-            LOG.debug("Could not resolve action display name for '$actionId': ${e.message}")
         }.getOrNull()
     }
 

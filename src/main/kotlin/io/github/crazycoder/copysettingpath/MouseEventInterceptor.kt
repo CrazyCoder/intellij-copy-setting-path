@@ -25,6 +25,7 @@ import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.SwingUtilities
 
 /**
@@ -72,9 +73,11 @@ class MouseEventInterceptor : Disposable {
     /**
      * Tracks whether we blocked a MOUSE_PRESSED event on a menu component.
      * If true, we should handle the subsequent MOUSE_RELEASED to copy the path.
+     *
+     * Uses AtomicReference for thread-safe get-and-set operations between
+     * handleMousePressed and handleMouseReleased calls.
      */
-    @Volatile
-    private var pendingMenuCopy: Component? = null
+    private val pendingMenuCopy = AtomicReference<Component?>(null)
 
     /**
      * Strong reference to the keymap listener to prevent garbage collection.
@@ -271,7 +274,7 @@ class MouseEventInterceptor : Disposable {
     private fun handleMousePressed(event: MouseEvent): Boolean {
         // Check if the modifier keys match our shortcut
         if (!isCopySettingPathShortcut(event)) {
-            pendingMenuCopy = null
+            pendingMenuCopy.set(null)
             return false
         }
 
@@ -281,7 +284,7 @@ class MouseEventInterceptor : Disposable {
         // Check if this is a menu component
         if (MenuPathExtractor.isMenuComponent(component)) {
             // Record the menu component for path extraction on MOUSE_RELEASED
-            pendingMenuCopy = component
+            pendingMenuCopy.set(component)
             LOG.debug {
                 "Blocking MOUSE_PRESSED on menu component for CopySettingPath (shortcut: ${
                     cachedMouseShortcut?.let {
@@ -296,7 +299,7 @@ class MouseEventInterceptor : Disposable {
 
         // For non-menu components, just block MOUSE_PRESSED as before
         // The MOUSE_RELEASED will still trigger our action via the normal shortcut mechanism
-        pendingMenuCopy = null
+        pendingMenuCopy.set(null)
         LOG.debug {
             "Blocking MOUSE_PRESSED to prevent component activation for CopySettingPath (shortcut: ${
                 cachedMouseShortcut?.let {
@@ -314,13 +317,9 @@ class MouseEventInterceptor : Disposable {
      * For menu components where we blocked MOUSE_PRESSED, this extracts and copies the menu path.
      */
     private fun handleMouseReleased(event: MouseEvent): Boolean {
-        val menuComponent = pendingMenuCopy
-        pendingMenuCopy = null
-
-        if (menuComponent == null) {
-            // No pending menu copy - let normal processing continue
-            return false
-        }
+        // Atomically get and clear the pending menu component
+        // If no pending menu copy, let normal processing continue
+        val menuComponent = pendingMenuCopy.getAndSet(null) ?: return false
 
         // Check if the modifier keys still match our shortcut
         if (!isCopySettingPathShortcut(event)) {
