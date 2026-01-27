@@ -107,6 +107,7 @@
   </extensions>
 
   <actions>
+    <!--suppress PluginXmlI18n -->
     <action id="CopySettingPath" description="Copies setting path to clipboard" text="Copy Setting Path"
             class="io.github.crazycoder.copysettingpath.actions.CopySettingPath">
       <mouse-shortcut keymap="$default" keystroke="control button1"/>
