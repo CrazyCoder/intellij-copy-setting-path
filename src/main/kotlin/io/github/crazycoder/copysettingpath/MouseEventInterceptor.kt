@@ -275,14 +275,30 @@ class MouseEventInterceptor : Disposable {
         if (MenuPathExtractor.isMenuComponent(component)) {
             // Record the menu component for path extraction on MOUSE_RELEASED
             pendingMenuCopy = component
-            LOG.debug { "Blocking MOUSE_PRESSED on menu component for CopySettingPath (shortcut: ${cachedMouseShortcut?.let { formatShortcut(it) }})" }
+            LOG.debug {
+                "Blocking MOUSE_PRESSED on menu component for CopySettingPath (shortcut: ${
+                    cachedMouseShortcut?.let {
+                        formatShortcut(
+                            it
+                        )
+                    }
+                })"
+            }
             return true
         }
 
         // For non-menu components, just block MOUSE_PRESSED as before
         // The MOUSE_RELEASED will still trigger our action via the normal shortcut mechanism
         pendingMenuCopy = null
-        LOG.debug { "Blocking MOUSE_PRESSED to prevent component activation for CopySettingPath (shortcut: ${cachedMouseShortcut?.let { formatShortcut(it) }})" }
+        LOG.debug {
+            "Blocking MOUSE_PRESSED to prevent component activation for CopySettingPath (shortcut: ${
+                cachedMouseShortcut?.let {
+                    formatShortcut(
+                        it
+                    )
+                }
+            })"
+        }
         return true
     }
 
@@ -308,7 +324,15 @@ class MouseEventInterceptor : Disposable {
         copyMenuPath(menuComponent)
 
         // Consume the event to prevent the menu action from executing
-        LOG.debug { "Blocking MOUSE_RELEASED on menu component - path copied (shortcut: ${cachedMouseShortcut?.let { formatShortcut(it) }})" }
+        LOG.debug {
+            "Blocking MOUSE_RELEASED on menu component - path copied (shortcut: ${
+                cachedMouseShortcut?.let {
+                    formatShortcut(
+                        it
+                    )
+                }
+            })"
+        }
         return true
     }
 
