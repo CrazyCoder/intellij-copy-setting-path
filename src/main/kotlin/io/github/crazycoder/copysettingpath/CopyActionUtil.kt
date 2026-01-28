@@ -48,6 +48,12 @@ object PathConstants {
     const val PROJECT_STRUCTURE_CONFIGURABLE_CLASS =
         "com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable"
 
+    // Popup class names (for JBPopup-based floating dialogs)
+    const val FIND_POPUP_PANEL_CLASS = "com.intellij.find.impl.FindPopupPanel"
+    const val SWITCHER_PANEL_CLASS = "com.intellij.platform.recentFiles.frontend.Switcher\$SwitcherPanel"
+    const val SEARCH_EVERYWHERE_UI_CLASS = "com.intellij.ide.actions.searcheverywhere.SearchEverywhereUI"
+    const val BIG_POPUP_UI_CLASS = "com.intellij.ide.actions.BigPopupUI"
+
     // Field names used for reflection
     const val FIELD_MY_TEXT = "myText"
     const val FIELD_MY_EDITOR = "myEditor"

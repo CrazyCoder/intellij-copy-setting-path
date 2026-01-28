@@ -21,6 +21,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.TextTransferable
 import io.github.crazycoder.copysettingpath.actions.CopySettingPath
 import io.github.crazycoder.copysettingpath.path.MenuPathExtractor
+import io.github.crazycoder.copysettingpath.path.PopupPathExtractor
 import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.event.InputEvent
@@ -297,7 +298,22 @@ class MouseEventInterceptor : Disposable {
             return true
         }
 
-        // For non-menu components, just block MOUSE_PRESSED as before
+        // Check if this is a popup component (prevents list selection changes)
+        if (component != null && PopupPathExtractor.isInPopupContext(component)) {
+            pendingMenuCopy.set(null)
+            LOG.debug {
+                "Blocking MOUSE_PRESSED in popup for CopySettingPath (shortcut: ${
+                    cachedMouseShortcut?.let {
+                        formatShortcut(
+                            it
+                        )
+                    }
+                })"
+            }
+            return true
+        }
+
+        // For non-menu, non-popup components, just block MOUSE_PRESSED as before
         // The MOUSE_RELEASED will still trigger our action via the normal shortcut mechanism
         pendingMenuCopy.set(null)
         LOG.debug {

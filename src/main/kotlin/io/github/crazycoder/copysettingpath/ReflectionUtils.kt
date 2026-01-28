@@ -54,7 +54,7 @@ fun findParentByClassName(component: java.awt.Component, className: String): jav
  * Checks if a class matches the target class name.
  * Handles exact matches, anonymous inner classes, and inheritance.
  */
-private fun matchesClassName(clazz: Class<*>, targetClassName: String): Boolean {
+fun matchesClassName(clazz: Class<*>, targetClassName: String): Boolean {
     // Check exact match
     if (clazz.name == targetClassName) {
         return true

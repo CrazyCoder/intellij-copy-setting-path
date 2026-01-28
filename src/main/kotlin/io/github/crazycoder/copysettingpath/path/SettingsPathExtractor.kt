@@ -2,6 +2,9 @@
 
 package io.github.crazycoder.copysettingpath.path
 
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.tabs.JBTabs
@@ -270,7 +273,7 @@ object SettingsPathExtractor {
     }
 
     /**
-     * Collects tab name from JBTabs or JTabbedPane component.
+     * Collects tab name from JBTabs, JTabbedPane, or ActionToolbar with toggle buttons.
      */
     private fun collectTabName(component: Component, items: ArrayDeque<String>) {
         when (component) {
@@ -285,6 +288,31 @@ object SettingsPathExtractor {
                 if (selectedIndex >= 0 && selectedIndex < component.tabCount) {
                     component.getTitleAt(selectedIndex)?.takeIf { it.isNotEmpty() }?.let {
                         items.addFirst(it)
+                    }
+                }
+            }
+
+            is ActionToolbar -> {
+                // Find selected toggle button in toolbar (e.g., scope selector in Find in Files)
+                collectSelectedToggleButtonText(component, items)
+            }
+        }
+    }
+
+    /**
+     * Finds the selected toggle button in an ActionToolbar and adds its text to items.
+     * This handles toolbars like the scope selector in Find in Files (In Project/Module/Directory/Scope).
+     */
+    private fun collectSelectedToggleButtonText(toolbar: ActionToolbar, items: ArrayDeque<String>) {
+        val toolbarComponent = toolbar.component
+        for (child in toolbarComponent.components) {
+            if (child is ActionButton) {
+                val presentation = child.presentation
+                if (Toggleable.isSelected(presentation)) {
+                    val text = presentation.text?.removeHtmlTags()?.trim()
+                    if (!text.isNullOrBlank()) {
+                        items.addFirst(text)
+                        return // Only add the first selected toggle
                     }
                 }
             }
