@@ -107,6 +107,24 @@
                      groupKey="group.advanced.settings.copy.setting.path"
                      bundle="messages.CopySettingPathBundle"/>
 
+    <!-- Advanced setting to enable/disable notification animations -->
+    <advancedSetting id="copy.setting.path.animate.notification"
+                     default="true"
+                     groupKey="group.advanced.settings.copy.setting.path"
+                     bundle="messages.CopySettingPathBundle"/>
+
+    <!-- Advanced setting to play sound when path is copied -->
+    <advancedSetting id="copy.setting.path.play.sound"
+                     default="true"
+                     groupKey="group.advanced.settings.copy.setting.path"
+                     bundle="messages.CopySettingPathBundle"/>
+
+    <!-- Advanced setting for notification delay (in seconds, supports decimals) -->
+    <advancedSetting id="copy.setting.path.notification.delay"
+                     default="1.5"
+                     groupKey="group.advanced.settings.copy.setting.path"
+                     bundle="messages.CopySettingPathBundle"/>
+
     <!-- Advanced setting for path separator style -->
     <advancedSetting id="copy.setting.path.separator"
                      default="PIPE"
