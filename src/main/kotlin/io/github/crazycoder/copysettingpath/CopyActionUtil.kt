@@ -3,7 +3,7 @@ package io.github.crazycoder.copysettingpath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.options.advanced.AdvancedSettings
-import com.intellij.ui.JBColor
+
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.awt.Component
 import java.awt.Container
@@ -283,15 +283,15 @@ private class ToastWindow(text: String) : javax.swing.JWindow() {
         val panel = javax.swing.JPanel(java.awt.BorderLayout()).apply {
             border = javax.swing.BorderFactory.createCompoundBorder(
                 javax.swing.BorderFactory.createLineBorder(
-                    javax.swing.UIManager.getColor("Borders.color") ?: JBColor.border(), 1
+                    com.intellij.util.ui.JBUI.CurrentTheme.NotificationInfo.borderColor(), 1
                 ),
                 javax.swing.BorderFactory.createEmptyBorder(6, 10, 6, 10)
             )
-            // Use tooltip colors for theme compatibility
-            background = javax.swing.UIManager.getColor("ToolTip.background") ?: JBColor.YELLOW
+            // Use notification info colors for a distinct "success" appearance
+            background = com.intellij.util.ui.JBUI.CurrentTheme.NotificationInfo.backgroundColor()
             
             val label = javax.swing.JLabel(text).apply {
-                foreground = javax.swing.UIManager.getColor("ToolTip.foreground") ?: JBColor.BLACK
+                foreground = com.intellij.util.ui.JBUI.CurrentTheme.NotificationInfo.foregroundColor()
             }
             add(label, java.awt.BorderLayout.CENTER)
         }
