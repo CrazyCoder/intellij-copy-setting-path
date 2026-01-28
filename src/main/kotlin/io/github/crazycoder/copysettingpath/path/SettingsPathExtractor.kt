@@ -48,7 +48,7 @@ object SettingsPathExtractor {
             // Fall back to dialog-level extraction
             val dialog = findSettingsDialog(src)
             if (dialog != null) {
-                val dialogPath = getPathFromSettingsDialog(dialog)
+                val dialogPath = getPathFromSettingsDialog(dialog, separator)
                 appendItem(path, dialogPath, separator)
             }
         }
@@ -95,28 +95,29 @@ object SettingsPathExtractor {
      * The SettingsDialog.getEditor() method returns AbstractEditor which is @ApiStatus.Internal.
      *
      * @param settings The SettingsDialog to extract path from.
+     * @param separator The separator to use between path components.
      * @return The formatted path string, or null if extraction fails.
      */
-    private fun getPathFromSettingsDialog(settings: SettingsDialog): String? {
+    private fun getPathFromSettingsDialog(settings: SettingsDialog, separator: String): String? {
         return runCatching {
             // Use reflection to get the editor to avoid internal API reference
             // SettingsDialog.getEditor() returns AbstractEditor which is @ApiStatus.Internal
             val editor =
-                getEditorViaReflection(settings) ?: return@runCatching getPathFromSettingsDialogLegacy(settings)
+                getEditorViaReflection(settings) ?: return@runCatching getPathFromSettingsDialogLegacy(settings, separator)
             val editorClassName = editor.javaClass.name
             LOG.debug("Editor class: $editorClassName")
 
             // getPathNames() only exists on SettingsEditor, not on SingleSettingEditor or AbstractEditor
             if (!editorClassName.contains("SettingsEditor")) {
                 LOG.debug("Editor is not SettingsEditor, falling back to legacy approach")
-                return@runCatching getPathFromSettingsDialogLegacy(settings)
+                return@runCatching getPathFromSettingsDialogLegacy(settings, separator)
             }
 
             val pathNames = invokeGetPathNames(editor)
             LOG.debug("pathNames result: $pathNames")
 
             if (!pathNames.isNullOrEmpty()) {
-                buildPath(pathNames)
+                buildPath(pathNames, separator)
             } else {
                 SETTINGS_PREFIX
             }
@@ -125,24 +126,30 @@ object SettingsPathExtractor {
                 is NoSuchMethodException -> LOG.debug("getPathNames method not found: ${e.message}")
                 else -> LOG.debug("Exception when getting path from settings dialog: ${e.message}")
             }
-        }.getOrNull() ?: getPathFromSettingsDialogLegacy(settings)
+        }.getOrNull() ?: getPathFromSettingsDialogLegacy(settings, separator)
     }
 
     /**
      * Builds a path string from the Settings prefix and collection of segments.
+     *
+     * @param segments The path segments to join.
+     * @param separator The separator to use between path components.
      */
-    private fun buildPath(segments: Collection<String>): String {
+    private fun buildPath(segments: Collection<String>, separator: String): String {
         return buildString {
             append(SETTINGS_PREFIX)
-            append(PathConstants.SEPARATOR)
-            append(segments.joinToString(PathConstants.SEPARATOR))
+            append(separator)
+            append(segments.joinToString(separator))
         }
     }
 
     /**
      * Legacy approach to extract path from SettingsDialog using deep reflection.
+     *
+     * @param settings The SettingsDialog to extract path from.
+     * @param separator The separator to use between path components.
      */
-    private fun getPathFromSettingsDialogLegacy(settings: SettingsDialog): String? {
+    private fun getPathFromSettingsDialogLegacy(settings: SettingsDialog, separator: String): String? {
         return runCatching {
             val editorField =
                 findInheritedField(
@@ -201,12 +208,12 @@ object SettingsPathExtractor {
 
             buildString {
                 append(SETTINGS_PREFIX)
-                views.forEachIndexed { index, crumb ->
+                views.forEachIndexed { _, crumb ->
                     crumb ?: return@forEachIndexed
                     val textField = crumb.javaClass.getDeclaredField(PathConstants.FIELD_TEXT)
                     textField.isAccessible = true
                     textField.get(crumb)?.let { value ->
-                        append(if (index > 0) PathConstants.SEPARATOR else PathConstants.SEPARATOR)
+                        append(separator)
                         append(value)
                     }
                 }

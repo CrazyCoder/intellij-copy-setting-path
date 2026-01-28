@@ -62,7 +62,7 @@ object ToolWindowPathExtractor {
         TreeTablePathExtractor.appendPath(src, e, path, separator)
 
         // 5. Add component label if the source is a labeled UI element
-        ComponentLabelExtractor.appendComponentLabel(src, path)
+        ComponentLabelExtractor.appendComponentLabel(src, path, separator)
 
         return if (path.isEmpty()) null else path.toString()
     }

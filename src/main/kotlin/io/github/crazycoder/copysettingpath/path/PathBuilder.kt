@@ -85,7 +85,7 @@ object PathBuilder {
         }
 
         // Add source component label
-        ComponentLabelExtractor.appendComponentLabel(src, path)
+        ComponentLabelExtractor.appendComponentLabel(src, path, separator)
 
         return if (path.isEmpty()) null else path.toString()
     }

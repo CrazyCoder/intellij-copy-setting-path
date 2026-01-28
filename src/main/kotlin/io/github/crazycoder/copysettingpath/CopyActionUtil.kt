@@ -166,7 +166,7 @@ fun appendItem(
             path.trimEnd { it in PathSeparator.allSeparatorChars }
                 .toString()
         val lastSegment =
-            trimmedPath.substringAfterLast(PathConstants.SEPARATOR.trim())
+            trimmedPath.substringAfterLast(separator.trim())
                 .trim()
         if (lastSegment == cleanItem) return
     }

@@ -5,6 +5,7 @@ package io.github.crazycoder.copysettingpath.path
 import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.ui.SimpleColoredComponent
 import io.github.crazycoder.copysettingpath.LayoutConstants
+import io.github.crazycoder.copysettingpath.appendItem
 import io.github.crazycoder.copysettingpath.removeHtmlTags
 import java.awt.Component
 import java.awt.Container
@@ -39,28 +40,40 @@ object ComponentLabelExtractor {
      *
      * @param component The component to extract label from.
      * @param path StringBuilder to append label to.
+     * @param separator The separator to use between path components.
      */
-    fun appendComponentLabel(component: Component, path: StringBuilder) {
+    fun appendComponentLabel(component: Component, path: StringBuilder, separator: String) {
         val label = getComponentLabel(component) ?: return
 
-        // Append the label
-        path.append(label)
+        // Append the label using appendItem to handle separator correctly
+        appendItem(path, label, separator)
 
         // If label ends with ":", try to append adjacent value
+        // Note: appendItem already adds a space after labels ending with ":"
         if (label.endsWith(":") && isAdjacentValueIncluded()) {
             // Special case: for toggle buttons where label came from labeledBy or group label,
             // the value is the button's own text, not an adjacent component
             if (component is JToggleButton && isToggleButtonGroupLabel(component, label)) {
                 val buttonText = component.text?.removeHtmlTags()?.trim()
                 if (!buttonText.isNullOrBlank()) {
+                    // Remove trailing space added by appendItem and append value with separator
+                    if (path.endsWith(" ")) {
+                        path.setLength(path.length - 1)
+                    }
                     path.append(" ")
                     path.append(buttonText)
+                    path.append(separator)
                 }
             } else {
                 findAdjacentValue(component)?.let { value ->
                     if (value.isNotBlank()) {
+                        // Remove trailing space added by appendItem and append value with separator
+                        if (path.endsWith(" ")) {
+                            path.setLength(path.length - 1)
+                        }
                         path.append(" ")
                         path.append(value)
+                        path.append(separator)
                     }
                 }
             }

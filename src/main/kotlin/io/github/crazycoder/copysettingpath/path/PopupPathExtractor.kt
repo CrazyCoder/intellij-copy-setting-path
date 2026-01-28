@@ -89,7 +89,7 @@ object PopupPathExtractor {
         TreeTablePathExtractor.appendPath(src, e, path, separator)
 
         // Add component label
-        ComponentLabelExtractor.appendComponentLabel(src, path)
+        ComponentLabelExtractor.appendComponentLabel(src, path, separator)
 
         return if (path.isEmpty()) null else path.toString()
     }
@@ -143,7 +143,7 @@ object PopupPathExtractor {
         TreeTablePathExtractor.appendPath(src, e, path, separator)
 
         // Add component label (scope selector, checkboxes, etc.)
-        ComponentLabelExtractor.appendComponentLabel(src, path)
+        ComponentLabelExtractor.appendComponentLabel(src, path, separator)
 
         return if (path.isEmpty()) null else path.toString()
     }
@@ -172,7 +172,7 @@ object PopupPathExtractor {
         TreeTablePathExtractor.appendPath(src, e, path, separator)
 
         // Add component label
-        ComponentLabelExtractor.appendComponentLabel(src, path)
+        ComponentLabelExtractor.appendComponentLabel(src, path, separator)
 
         return if (path.isEmpty()) null else path.toString()
     }
@@ -206,7 +206,7 @@ object PopupPathExtractor {
         TreeTablePathExtractor.appendPath(src, e, path, separator)
 
         // Add component label
-        ComponentLabelExtractor.appendComponentLabel(src, path)
+        ComponentLabelExtractor.appendComponentLabel(src, path, separator)
 
         return if (path.isEmpty()) null else path.toString()
     }
